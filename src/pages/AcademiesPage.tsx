@@ -32,6 +32,11 @@ export default function AcademiesPage() {
     });
 
     return [...filtered].sort((a, b) => {
+      if (region === "전체" && sort === "latest") {
+        const homepagePriority = Number(Boolean(b.homepageUrl)) - Number(Boolean(a.homepageUrl));
+        if (homepagePriority !== 0) return homepagePriority;
+      }
+
       if (sort === "name") return a.name.localeCompare(b.name, "ko");
       if (sort === "district") return a.district.localeCompare(b.district, "ko");
       return 0;

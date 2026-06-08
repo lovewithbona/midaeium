@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import AcademyCard from "../components/AcademyCard";
 import CTABox from "../components/CTABox";
 import FilterChips from "../components/FilterChips";
@@ -7,7 +8,22 @@ import { academies, regions } from "../data/academies";
 import { demoReviews } from "../data/reviews";
 
 export default function HomePage() {
+  const [region, setRegion] = useState("전체");
   const recentItems = demoReviews.slice(0, 3);
+  const previewAcademies = useMemo(() => {
+    const filtered = academies.filter((academy) => region === "전체" || academy.region === region);
+
+    return [...filtered]
+      .sort((a, b) => {
+        if (region === "전체") {
+          const homepagePriority = Number(Boolean(b.homepageUrl)) - Number(Boolean(a.homepageUrl));
+          if (homepagePriority !== 0) return homepagePriority;
+        }
+
+        return a.name.localeCompare(b.name, "ko");
+      })
+      .slice(0, 4);
+  }, [region]);
 
   return (
     <PageLayout>
@@ -24,10 +40,10 @@ export default function HomePage() {
           <section className="section">
             <h2>학원 정보 둘러보기</h2>
             <div className="filters-preview">
-              <FilterChips label="지역" items={regions} value="전체" onChange={() => undefined} />
+              <FilterChips label="지역" items={regions} value={region} onChange={setRegion} />
             </div>
             <div className="academy-grid">
-              {academies.slice(0, 4).map((academy) => (
+              {previewAcademies.map((academy) => (
                 <AcademyCard key={academy.id} academy={academy} />
               ))}
             </div>

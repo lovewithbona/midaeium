@@ -8,6 +8,7 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
   const entranceTypes = academy.entranceTypes.length > 0 ? academy.entranceTypes : ["준비 가능 전형 확인 중"];
   const strongTypes = academy.strongTypes.length > 0 ? academy.strongTypes : ["강점 전형 확인 중"];
   const detailUrl = `/academies/${academy.id}`;
+  const homepageDomain = getDomain(academy.homepageUrl);
 
   function openDetail() {
     navigate(detailUrl);
@@ -24,8 +25,15 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
       tabIndex={0}
       aria-label={`${academy.name} 상세 보기`}
     >
-      <div className="academy-visual" aria-hidden="true">
+      <div className={`academy-visual ${homepageDomain ? "has-homepage" : ""}`} aria-hidden="true">
         <span>{academy.district}</span>
+        {homepageDomain && (
+          <div className="site-preview">
+            <small>공식 사이트</small>
+            <strong>{homepageDomain}</strong>
+            <i />
+          </div>
+        )}
       </div>
       <div className="card-top">
         <div>
@@ -57,4 +65,14 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
       </div>
     </article>
   );
+}
+
+function getDomain(url?: string | null) {
+  if (!url) return "";
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
