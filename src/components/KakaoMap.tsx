@@ -60,6 +60,7 @@ function escapeHtml(value: string) {
 export default function KakaoMap({ name, address, naverUrl }: KakaoMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "missing-key" | "not-found" | "error">("loading");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const appKey = import.meta.env.VITE_KAKAO_MAP_KEY;
@@ -71,6 +72,7 @@ export default function KakaoMap({ name, address, naverUrl }: KakaoMapProps) {
     }
 
     setStatus("loading");
+    setErrorMessage("");
 
     loadKakaoSdk(appKey)
       .then((kakao) => {
@@ -102,8 +104,11 @@ export default function KakaoMap({ name, address, naverUrl }: KakaoMapProps) {
           setStatus("ready");
         });
       })
-      .catch(() => {
-        if (!cancelled) setStatus("error");
+      .catch((error) => {
+        if (!cancelled) {
+          setErrorMessage(error instanceof Error ? error.message : "");
+          setStatus("error");
+        }
       });
 
     return () => {
@@ -116,7 +121,9 @@ export default function KakaoMap({ name, address, naverUrl }: KakaoMapProps) {
     ready: "",
     "missing-key": "카카오 지도 키가 설정되지 않았어요.",
     "not-found": "주소 좌표를 찾지 못했어요.",
-    error: "지도를 불러오지 못했어요.",
+    error: errorMessage.includes("OPEN_MAP_AND_LOCAL")
+      ? "카카오맵 API 사용 설정이 아직 켜져 있지 않아요."
+      : "지도를 불러오지 못했어요.",
   }[status];
 
   return (
@@ -126,6 +133,9 @@ export default function KakaoMap({ name, address, naverUrl }: KakaoMapProps) {
         <div className="map-fallback">
           <strong>{address}</strong>
           <p>{statusText}</p>
+          {status === "error" && errorMessage.includes("OPEN_MAP_AND_LOCAL") && (
+            <small>카카오 Developers의 제품 설정에서 카카오맵 API 상태를 ON으로 바꿔야 합니다.</small>
+          )}
           <a href={naverUrl} target="_blank" rel="noreferrer">네이버 지도에서 보기</a>
         </div>
       )}
