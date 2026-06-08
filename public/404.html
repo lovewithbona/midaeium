@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>미대이음</title>
+    <script>
+      (function () {
+        var repositoryBase = "/midaeium";
+        var path = window.location.pathname;
+        var route = path.indexOf(repositoryBase) === 0 ? path.slice(repositoryBase.length) : path;
+
+        if (!route || route === "/") {
+          route = "/";
+        }
+
+        window.location.replace(repositoryBase + "/#" + route + window.location.search);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
