@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import KakaoMap from "../components/KakaoMap";
 import PageLayout from "../components/PageLayout";
@@ -7,6 +8,7 @@ import { getAcademyReviewStats } from "../utils/reviewStats";
 
 export default function AcademyDetailPage() {
   const { id } = useParams();
+  const [activeTab, setActiveTab] = useState<"info" | "reviews">("info");
   const academy = academies.find((item) => item.id === id);
 
   if (!academy) {
@@ -28,30 +30,57 @@ export default function AcademyDetailPage() {
         <div>
           <p className="eyebrow">{academy.region} {academy.district}</p>
           <h1>{academy.name}</h1>
-          <p>{academy.location}</p>
+          <p>{academy.location} · 리뷰 {reviewCount}개 · ♥ {averageRating ? averageRating.toFixed(1) : "0.0"}</p>
         </div>
         <Link className="primary-button" to="/review/new">리뷰 등록하기</Link>
       </section>
+      <div className="detail-tabs" role="tablist" aria-label="학원 상세 보기">
+        <button
+          type="button"
+          className={activeTab === "info" ? "active" : ""}
+          onClick={() => setActiveTab("info")}
+          role="tab"
+          aria-selected={activeTab === "info"}
+        >
+          학원 정보
+        </button>
+        <button
+          type="button"
+          className={activeTab === "reviews" ? "active" : ""}
+          onClick={() => setActiveTab("reviews")}
+          role="tab"
+          aria-selected={activeTab === "reviews"}
+        >
+          리뷰 {reviewCount}개
+        </button>
+      </div>
       <section className="detail-grid">
+        {activeTab === "info" && (
         <div className="detail-card">
           <h2>학원 정보</h2>
-          <dl className="detail-list">
-            <dt>위치</dt>
-            <dd>{academy.location}</dd>
-            <dt>주소</dt>
-            <dd>{academy.address}</dd>
-            <dt>입시 유형</dt>
-            <dd>{academy.entranceTypes.length > 0 ? academy.entranceTypes.join(", ") : "준비 가능 전형 확인 중"}</dd>
-            <dt>강점 전형</dt>
-            <dd>{academy.strongTypes.length > 0 ? academy.strongTypes.join(", ") : "강점 전형 확인 중"}</dd>
-            <dt>유형 확인</dt>
-            <dd>{academy.typeConfidence}</dd>
+          <div className="detail-summary-grid">
+            <div>
+              <span>지역</span>
+              <strong>{academy.region} {academy.district}</strong>
+            </div>
+            <div>
+              <span>주소</span>
+              <strong>{academy.address}</strong>
+            </div>
+            <div>
+              <span>준비 가능 전형</span>
+              <strong>{academy.entranceTypes.length > 0 ? academy.entranceTypes.join(", ") : "확인 중"}</strong>
+            </div>
+            <div>
+              <span>강점 전형</span>
+              <strong>{academy.strongTypes.length > 0 ? academy.strongTypes.join(", ") : "확인 중"}</strong>
+            </div>
+          </div>
+          <dl className="detail-list compact">
             <dt>공식 홈페이지</dt>
             <dd>{academy.homepageUrl ? <a href={academy.homepageUrl} target="_blank" rel="noreferrer">바로가기</a> : "확인 필요"}</dd>
-            <dt>리뷰 평점</dt>
-            <dd>{reviewCount}개 · ♥ {averageRating ? averageRating.toFixed(1) : "0.0"}</dd>
-            <dt>검수 상태</dt>
-            <dd>{academy.verifiedStatus}</dd>
+            <dt>자료 상태</dt>
+            <dd>{academy.verifiedStatus} · {academy.typeConfidence}</dd>
           </dl>
           <div className="link-row">
             {academy.homepageUrl && <a href={academy.homepageUrl} target="_blank" rel="noreferrer">홈페이지</a>}
@@ -59,12 +88,15 @@ export default function AcademyDetailPage() {
           </div>
           <KakaoMap name={academy.name} address={academy.address} naverUrl={getNaverMapUrl(academy.mapSearchQuery)} />
         </div>
+        )}
+        {activeTab === "reviews" && (
         <div className="detail-card review-panel">
           <h2>등록된 리뷰 {reviewCount}개</h2>
           <div className="review-list">
             {reviews.length > 0 ? reviews.map((review) => <ReviewCard key={review.id} review={review} />) : <p className="muted">아직 이 학원에 등록된 리뷰가 없어요.</p>}
           </div>
         </div>
+        )}
       </section>
     </PageLayout>
   );

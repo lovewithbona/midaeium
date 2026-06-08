@@ -566,12 +566,76 @@ label input::placeholder {
   gap: 18px;
 }
 
+.detail-tabs {
+  position: sticky;
+  top: 72px;
+  z-index: 5;
+  display: inline-flex;
+  gap: 0;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.detail-tabs button {
+  min-width: 132px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 520;
+}
+
+.detail-tabs button:last-child {
+  border-right: 0;
+}
+
+.detail-tabs button.active {
+  background: var(--point);
+  color: #fff;
+}
+
 .review-panel {
   grid-column: 1 / -1;
 }
 
 .detail-card {
   padding: 30px;
+}
+
+.detail-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.detail-summary-grid div {
+  display: grid;
+  gap: 8px;
+  min-height: 88px;
+  align-content: start;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.detail-summary-grid span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.detail-summary-grid strong {
+  font-size: 16px;
+  font-weight: 560;
+  line-height: 1.55;
+}
+
+.detail-list.compact {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
 }
 
 .link-row {
@@ -1045,6 +1109,20 @@ input::placeholder {
   .list-tools {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .detail-tabs {
+    top: 0;
+    width: 100%;
+  }
+
+  .detail-tabs button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .detail-summary-grid {
+    grid-template-columns: 1fr;
   }
 
   .tool-actions {
