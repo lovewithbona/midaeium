@@ -1,15 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getNaverMapUrl, type Academy } from "../data/academies";
 import { getAcademyReviewStats } from "../utils/reviewStats";
 
 export default function AcademyCard({ academy }: { academy: Academy }) {
+  const navigate = useNavigate();
   const { reviewCount } = getAcademyReviewStats(academy.id);
   const entranceTypes = academy.entranceTypes.length > 0 ? academy.entranceTypes : ["준비 가능 전형 확인 중"];
   const strongTypes = academy.strongTypes.length > 0 ? academy.strongTypes : ["강점 전형 확인 중"];
   const detailUrl = `/academies/${academy.id}`;
 
   function openDetail() {
-    window.location.href = detailUrl;
+    navigate(detailUrl);
   }
 
   return (
