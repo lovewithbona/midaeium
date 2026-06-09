@@ -24,6 +24,7 @@ export default function AcademyDetailPage() {
 
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
   const homepageLabel = getHomepageLabel(academy.officialWebsiteUrl);
+  const hasChannel = Boolean(academy.officialWebsiteUrl || academy.instagramUrl || academy.naverBlogUrl);
 
   return (
     <PageLayout>
@@ -77,14 +78,28 @@ export default function AcademyDetailPage() {
               <strong>{academy.strongTypes.length > 0 ? academy.strongTypes.join(", ") : "확인 중"}</strong>
             </div>
           </div>
-          <dl className="detail-list compact">
-            <dt>공식 홈페이지</dt>
-            <dd>{academy.officialWebsiteUrl ? <a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">{homepageLabel}</a> : "확인 필요"}</dd>
-            <dt>인스타그램</dt>
-            <dd>{academy.instagramUrl ? <a href={academy.instagramUrl} target="_blank" rel="noreferrer">인스타그램 보기</a> : "확인 필요"}</dd>
-            <dt>네이버 블로그</dt>
-            <dd>{academy.naverBlogUrl ? <a href={academy.naverBlogUrl} target="_blank" rel="noreferrer">네이버 블로그 보기</a> : "확인 필요"}</dd>
-          </dl>
+          {hasChannel && (
+            <dl className="detail-list compact">
+              {academy.officialWebsiteUrl && (
+                <>
+                  <dt>공식 홈페이지</dt>
+                  <dd><a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">{homepageLabel}</a></dd>
+                </>
+              )}
+              {academy.instagramUrl && (
+                <>
+                  <dt>인스타그램</dt>
+                  <dd><a href={academy.instagramUrl} target="_blank" rel="noreferrer">인스타그램 보기</a></dd>
+                </>
+              )}
+              {academy.naverBlogUrl && (
+                <>
+                  <dt>네이버 블로그</dt>
+                  <dd><a href={academy.naverBlogUrl} target="_blank" rel="noreferrer">네이버 블로그 보기</a></dd>
+                </>
+              )}
+            </dl>
+          )}
           <div className="map-link-card">
             <span>{academy.region} {academy.district}</span>
             <strong>{academy.address}</strong>
