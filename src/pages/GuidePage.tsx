@@ -116,15 +116,18 @@ export default function GuidePage() {
         </div>
         <div className="guide-term-grid">
           {filteredTerms.map((term) => (
-            <article className="guide-term-card" key={term.id}>
-              <div>
+            <details className="guide-term-card" key={term.id}>
+              <summary>
                 <span>{term.category}</span>
                 <h3>{term.title}</h3>
                 <p>{term.oneLine}</p>
+              </summary>
+              <div className="guide-term-detail">
+                <p>{term.description}</p>
+                {term.example ? <p className="guide-note">예: {term.example}</p> : null}
+                {term.tip ? <p className="guide-note">{term.tip}</p> : null}
               </div>
-              <p>{term.description}</p>
-              {term.tip ? <p className="guide-note">{term.tip}</p> : null}
-            </article>
+            </details>
           ))}
           {filteredTerms.length === 0 ? (
             <p className="guide-empty">검색 결과가 없어. 다른 단어로 다시 찾아봐.</p>

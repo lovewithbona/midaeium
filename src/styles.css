@@ -1304,9 +1304,12 @@ input::placeholder {
 }
 
 .guide-info-card,
-.guide-term-card,
 .guide-type-card {
   padding: 24px;
+}
+
+.guide-term-card {
+  padding: 0;
 }
 
 .guide-info-card h3,
@@ -1375,7 +1378,40 @@ input::placeholder {
 
 .guide-term-card {
   display: grid;
-  gap: 16px;
+}
+
+.guide-term-card summary {
+  display: grid;
+  position: relative;
+  gap: 2px;
+  padding: 24px 52px 24px 24px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.guide-term-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-term-card summary::after {
+  content: "+";
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  color: var(--muted);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.guide-term-card[open] summary::after {
+  content: "-";
+}
+
+.guide-term-detail {
+  display: grid;
+  gap: 14px;
+  padding: 0 24px 24px;
 }
 
 .guide-term-card span,
