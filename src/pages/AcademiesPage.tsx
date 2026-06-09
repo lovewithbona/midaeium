@@ -43,11 +43,23 @@ export default function AcademiesPage() {
     });
   }, [region, district, type, keyword, sort]);
 
-  function updateParam(key: "region" | "district" | "type", value: string) {
+  function updateParam(key: "region" | "district" | "type" | "q", value: string) {
     const next = new URLSearchParams(params);
-    if (value === "전체") next.delete(key);
+    if (value === "전체" || value === "") next.delete(key);
     else next.set(key, value);
     if (key === "region") next.delete("district");
+    setParams(next);
+  }
+
+  function applySearch(filters: { region: string; type: string; keyword: string }) {
+    const next = new URLSearchParams(params);
+    if (filters.region === "전체") next.delete("region");
+    else next.set("region", filters.region);
+    if (filters.type === "전체") next.delete("type");
+    else next.set("type", filters.type);
+    if (filters.keyword) next.set("q", filters.keyword);
+    else next.delete("q");
+    next.delete("district");
     setParams(next);
   }
 
@@ -57,7 +69,7 @@ export default function AcademiesPage() {
         <h1>학원 찾기</h1>
         <p>지역, 유형, 학원 이름으로 미술학원 후보를 찾아보세요.</p>
       </section>
-      <SearchBar initialRegion={region} initialType={type} initialKeyword={keyword} />
+      <SearchBar initialRegion={region} initialType={type} initialKeyword={keyword} onSearch={applySearch} />
       <section className="section">
         <FilterChips label="지역" items={regions} value={region} onChange={(value) => updateParam("region", value)} tone="region" />
         {region !== "전체" && districtOptions.length > 1 && (
@@ -67,6 +79,7 @@ export default function AcademiesPage() {
         <div className="list-tools">
           <span>검색 결과 {results.length}개</span>
           <div className="tool-actions">
+            {keyword && <button type="button" className="text-button" onClick={() => updateParam("q", "")}>검색어 지우기</button>}
             <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="정렬">
               <option value="latest">최신순</option>
               <option value="district">지역순</option>

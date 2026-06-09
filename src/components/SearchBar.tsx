@@ -6,9 +6,10 @@ type SearchBarProps = {
   initialRegion?: string;
   initialType?: string;
   initialKeyword?: string;
+  onSearch?: (filters: { region: string; type: string; keyword: string }) => void;
 };
 
-export default function SearchBar({ initialRegion = "전체", initialType = "전체", initialKeyword = "" }: SearchBarProps) {
+export default function SearchBar({ initialRegion = "전체", initialType = "전체", initialKeyword = "", onSearch }: SearchBarProps) {
   const navigate = useNavigate();
   const [region, setRegion] = useState(initialRegion);
   const [type, setType] = useState(initialType);
@@ -20,7 +21,13 @@ export default function SearchBar({ initialRegion = "전체", initialType = "전
     if (region !== "전체") params.set("region", region);
     if (type !== "전체") params.set("type", type);
     if (keyword.trim()) params.set("q", keyword.trim());
-    navigate(`/academies?${params.toString()}`);
+
+    if (onSearch) {
+      onSearch({ region, type, keyword: keyword.trim() });
+      return;
+    }
+
+    navigate(params.toString() ? `/academies?${params.toString()}` : "/academies");
   }
 
   return (

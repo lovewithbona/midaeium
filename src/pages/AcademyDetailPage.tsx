@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import KakaoMap from "../components/KakaoMap";
 import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
 import { academies, getNaverMapUrl } from "../data/academies";
@@ -86,7 +85,12 @@ export default function AcademyDetailPage() {
             {academy.homepageUrl && <a href={academy.homepageUrl} target="_blank" rel="noreferrer">홈페이지</a>}
             <a href={getNaverMapUrl(academy.mapSearchQuery)} target="_blank" rel="noreferrer">지도 보기</a>
           </div>
-          <KakaoMap name={academy.name} address={academy.address} naverUrl={getNaverMapUrl(academy.mapSearchQuery)} />
+          <div className="map-link-card">
+            <span>{academy.region} {academy.district}</span>
+            <strong>{academy.address}</strong>
+            <p>지도 API 권한 승인 전까지는 외부 지도 검색 결과로 연결됩니다.</p>
+            <a href={getNaverMapUrl(academy.mapSearchQuery)} target="_blank" rel="noreferrer">네이버 지도에서 위치 보기</a>
+          </div>
         </div>
         )}
         {activeTab === "reviews" && (

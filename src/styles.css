@@ -550,6 +550,15 @@ dd {
   margin: 28px 0 22px;
 }
 
+.text-button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .tool-actions select,
 label input,
 label select,
@@ -696,6 +705,36 @@ label input::placeholder {
   border-radius: 0;
   overflow: hidden;
   background: #f8f8f8;
+}
+
+.map-link-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(242, 233, 128, 0.55), rgba(141, 124, 255, 0.16)),
+    #fff;
+}
+
+.map-link-card span,
+.map-link-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.map-link-card strong {
+  font-size: 18px;
+  font-weight: 560;
+}
+
+.map-link-card a {
+  width: fit-content;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--text);
+  color: var(--text);
+  font-weight: 620;
 }
 
 .kakao-map-canvas {
