@@ -11,6 +11,7 @@ export default function Header() {
       </NavLink>
       <nav className="nav">
         <NavLink to="/academies">학원 찾기</NavLink>
+        <NavLink to="/guide">입시 가이드</NavLink>
         <NavLink to="/review/new">리뷰 등록</NavLink>
         <NavLink to="/about">미대이음이란?</NavLink>
         <NavLink to="/login" className="login-link">
