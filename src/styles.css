@@ -1373,7 +1373,6 @@ input::placeholder {
 }
 
 .guide-info-card,
-.guide-term-card,
 .guide-type-card,
 .guide-check-card {
   min-width: 0;
@@ -1386,19 +1385,13 @@ input::placeholder {
   padding: 24px;
 }
 
-.guide-term-card {
-  padding: 0;
-}
-
 .guide-info-card h3,
-.guide-term-card h3,
 .guide-type-card h3,
 .guide-check-card h3 {
   margin: 0 0 10px;
 }
 
 .guide-info-card p,
-.guide-term-card p,
 .guide-type-card p,
 .guide-check-card span,
 .guide-faq-list p,
@@ -1408,91 +1401,6 @@ input::placeholder {
   color: var(--muted);
 }
 
-.guide-term-tools {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.guide-term-tools input {
-  width: 100%;
-  min-height: 54px;
-  padding: 0 18px;
-  border: 1px solid var(--line);
-  background: #fff;
-  outline: 0;
-}
-
-.guide-term-tools input:focus {
-  border-color: var(--violet);
-}
-
-.guide-filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.guide-filter-row button {
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
-}
-
-.guide-filter-row button.active {
-  border-color: var(--violet);
-  background: var(--violet);
-  color: #fff;
-  font-weight: 650;
-}
-
-.guide-term-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.guide-term-card {
-  display: grid;
-}
-
-.guide-term-card summary {
-  display: grid;
-  position: relative;
-  gap: 2px;
-  padding: 24px 52px 24px 24px;
-  cursor: pointer;
-  list-style: none;
-}
-
-.guide-term-card summary::-webkit-details-marker {
-  display: none;
-}
-
-.guide-term-card summary::after {
-  content: "+";
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  color: var(--muted);
-  font-size: 22px;
-  font-weight: 400;
-  line-height: 1;
-}
-
-.guide-term-card[open] summary::after {
-  content: "-";
-}
-
-.guide-term-detail {
-  display: grid;
-  gap: 14px;
-  padding: 0 24px 24px;
-}
-
-.guide-term-card span,
 .guide-type-title span {
   display: inline-flex;
   width: fit-content;
@@ -1502,19 +1410,6 @@ input::placeholder {
   color: var(--tag-text);
   font-size: 12px;
   font-weight: 650;
-}
-
-.guide-note {
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.guide-empty {
-  grid-column: 1 / -1;
-  margin: 0;
-  padding: 24px;
-  border: 1px solid var(--line);
-  color: var(--muted);
 }
 
 .guide-type-grid {
@@ -1716,7 +1611,6 @@ input::placeholder {
   .result-options,
   .feature-grid,
   .choice-toolbar,
-  .guide-term-grid,
   .guide-check-grid {
     grid-template-columns: 1fr;
   }
@@ -1853,7 +1747,6 @@ input::placeholder {
   }
 
   .guide-info-card,
-  .guide-term-card,
   .guide-type-card,
   .guide-check-card {
     padding: 20px;

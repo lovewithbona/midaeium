@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import {
@@ -9,55 +8,14 @@ import {
   guideCta,
   guideFaqs,
   guideNotice,
-  guideTerms,
   practicalTypeGuides,
-  type GuideCategory,
 } from "../data/admissionGuide";
-
-const termCategories = [
-  "전체",
-  "입시 기본",
-  "전형 이해",
-  "실기 유형",
-  "학원 선택",
-  "리뷰 읽기",
-] as const;
-
-type TermCategoryFilter = (typeof termCategories)[number];
 
 function typeSearchUrl(type: string) {
   return `/academies?type=${encodeURIComponent(type)}`;
 }
 
 export default function GuidePage() {
-  const [termKeyword, setTermKeyword] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<TermCategoryFilter>("전체");
-
-  const filteredTerms = useMemo(() => {
-    const keyword = termKeyword.trim().toLowerCase();
-
-    return guideTerms.filter((term) => {
-      const categoryMatches =
-        selectedCategory === "전체" || term.category === (selectedCategory as GuideCategory);
-
-      if (!categoryMatches) return false;
-      if (!keyword) return true;
-
-      const searchableText = [
-        term.title,
-        term.oneLine,
-        term.description,
-        term.example ?? "",
-        term.tip ?? "",
-        term.relatedTags.join(" "),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(keyword);
-    });
-  }, [selectedCategory, termKeyword]);
-
   return (
     <PageLayout className="guide-page">
       <section className="guide-hero">
@@ -86,52 +44,6 @@ export default function GuidePage() {
               <p>{item.description}</p>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section className="guide-section">
-        <div className="guide-section-head">
-          <p>입시 용어 정리</p>
-          <h2>헷갈리는 단어부터 검색해 보기</h2>
-        </div>
-        <div className="guide-term-tools">
-          <input
-            aria-label="입시 용어 검색"
-            value={termKeyword}
-            onChange={(event) => setTermKeyword(event.target.value)}
-            placeholder="예: 수시, 기초디자인, 모집요강"
-          />
-          <div className="guide-filter-row" aria-label="용어 카테고리">
-            {termCategories.map((category) => (
-              <button
-                className={selectedCategory === category ? "active" : ""}
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                type="button"
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="guide-term-grid">
-          {filteredTerms.map((term) => (
-            <details className="guide-term-card" key={term.id}>
-              <summary>
-                <span>{term.category}</span>
-                <h3>{term.title}</h3>
-                <p>{term.oneLine}</p>
-              </summary>
-              <div className="guide-term-detail">
-                <p>{term.description}</p>
-                {term.example ? <p className="guide-note">예: {term.example}</p> : null}
-                {term.tip ? <p className="guide-note">{term.tip}</p> : null}
-              </div>
-            </details>
-          ))}
-          {filteredTerms.length === 0 ? (
-            <p className="guide-empty">검색 결과가 없어. 다른 단어로 다시 찾아봐.</p>
-          ) : null}
         </div>
       </section>
 
