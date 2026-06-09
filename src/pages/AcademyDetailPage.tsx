@@ -60,6 +60,11 @@ export default function AcademyDetailPage() {
         {activeTab === "info" && (
         <div className="detail-card">
           <h2>학원 정보</h2>
+          <div className="guide-inline-card">
+            <strong>용어를 모르겠나요?</strong>
+            <span>준비 가능 전형이나 실기 유형이 낯설다면 입시 가이드에서 먼저 확인해 봐.</span>
+            <Link to="/guide">입시 가이드 보기</Link>
+          </div>
           <div className="detail-summary-grid">
             <div>
               <span>지역</span>

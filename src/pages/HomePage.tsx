@@ -1,39 +1,11 @@
-import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import AcademyCard from "../components/AcademyCard";
 import CTABox from "../components/CTABox";
-import FilterChips from "../components/FilterChips";
 import PageLayout from "../components/PageLayout";
 import SearchBar from "../components/SearchBar";
-import { academies, regions } from "../data/academies";
 import { demoReviews } from "../data/reviews";
 
 export default function HomePage() {
-  const [region, setRegion] = useState("전체");
-  const [page, setPage] = useState(1);
   const recentItems = demoReviews.slice(0, 3);
-  const filteredAcademies = useMemo(() => {
-    const filtered = academies.filter((academy) => region === "전체" || academy.region === region);
-
-    return [...filtered]
-      .sort((a, b) => {
-        if (region === "전체") {
-          const homepagePriority = Number(Boolean(b.officialWebsiteUrl)) - Number(Boolean(a.officialWebsiteUrl));
-          if (homepagePriority !== 0) return homepagePriority;
-        }
-
-        return a.name.localeCompare(b.name, "ko");
-      });
-  }, [region]);
-  const pageSize = 4;
-  const totalPages = Math.max(1, Math.ceil(filteredAcademies.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const previewAcademies = filteredAcademies.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-  function handleRegionChange(nextRegion: string) {
-    setRegion(nextRegion);
-    setPage(1);
-  }
 
   return (
     <PageLayout>
@@ -48,22 +20,18 @@ export default function HomePage() {
           </div>
           <SearchBar />
           <section className="section">
-            <h2>학원 정보 둘러보기</h2>
-            <div className="filters-preview">
-              <FilterChips label="지역" items={regions} value={region} onChange={handleRegionChange} />
-            </div>
-            <div className="home-list-head">
-              <span>{region === "전체" ? "전체" : region} 결과 {filteredAcademies.length}개</span>
-              <div className="pagination-controls" aria-label="학원 목록 페이지">
-                <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={currentPage === 1}>이전</button>
-                <strong>{currentPage} / {totalPages}</strong>
-                <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={currentPage === totalPages}>다음</button>
-              </div>
-            </div>
-            <div className="academy-grid">
-              {previewAcademies.map((academy) => (
-                <AcademyCard key={academy.id} academy={academy} />
-              ))}
+            <h2>무엇부터 볼까요?</h2>
+            <div className="home-entry-grid">
+              <Link className="home-entry-card" to="/academies">
+                <span>학원 찾기</span>
+                <h3>지역과 전형에 맞는 학원 찾기</h3>
+                <p>152개 학원 후보를 지역, 유형, 이름으로 검색하고 실제 리뷰를 비교해 볼 수 있어.</p>
+              </Link>
+              <Link className="home-entry-card guide" to="/guide">
+                <span>입시 가이드</span>
+                <h3>미대 입시 기본 용어부터 이해하기</h3>
+                <p>수시, 정시, 실기 유형, 학원 선택 기준처럼 처음 헷갈리는 내용을 먼저 정리해 볼 수 있어.</p>
+              </Link>
             </div>
           </section>
         </section>
