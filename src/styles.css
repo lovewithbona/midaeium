@@ -271,10 +271,28 @@ p {
   color: var(--text);
 }
 
+.chip-row-feedback .chip.active {
+  border-color: var(--violet);
+  background: var(--violet);
+  color: #fff;
+}
+
+.chip-row-positive .chip.active {
+  border-color: #9ccfb4;
+  background: #dbf3e4;
+  color: #123324;
+}
+
 .chip-row-concern .chip.active {
   border-color: #eadf74;
   background: #fbf4a5;
   color: var(--text);
+}
+
+.chip-row-caution .chip.active {
+  border-color: #e6b3a6;
+  background: #ffe8df;
+  color: #4b2118;
 }
 
 .academy-grid {
@@ -875,6 +893,24 @@ label input::placeholder {
   color: var(--text);
 }
 
+.review-tag.feedback {
+  border-color: #d8d2ff;
+  background: #f4f2ff;
+  color: #4f48c6;
+}
+
+.review-tag.positive {
+  border-color: #b7dcc6;
+  background: #ecf8f0;
+  color: #1f4a34;
+}
+
+.review-tag.caution {
+  border-color: #e8c2b7;
+  background: #fff0ea;
+  color: #5a2a1f;
+}
+
 .notice-box {
   margin-bottom: 20px;
   padding: 18px 20px;
@@ -923,6 +959,22 @@ label input::placeholder {
   padding: 22px;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.review-choice-feedback {
+  border-left: 4px solid var(--violet);
+}
+
+.review-choice-positive {
+  border-left: 4px solid #9ccfb4;
+}
+
+.review-choice-concern {
+  border-left: 4px solid #eadf74;
+}
+
+.review-choice-caution {
+  border-left: 4px solid #e6b3a6;
 }
 
 .review-choice-card + .form-grid {

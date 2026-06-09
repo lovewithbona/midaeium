@@ -209,25 +209,25 @@ export default function ReviewNewPage() {
               </div>
             </div>
           </details>
-          <div className="review-choice-card">
+          <div className="review-choice-card review-choice-feedback">
             <span className="field-title">피드백 스타일</span>
             <p className="field-help">선생님 피드백이 어떻게 느껴졌는지 골라 주세요.</p>
-            <div className="chip-row no-label">
+            <div className="chip-row no-label chip-row-feedback">
               {feedbackStyles.map((tag) => (
                 <button type="button" key={tag} className={`chip ${feedbackTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setFeedbackTags)}>{tag}</button>
               ))}
             </div>
           </div>
-          <div className="review-choice-card">
+          <div className="review-choice-card review-choice-positive">
             <span className="field-title">좋았던 점</span>
             <p className="field-help">해당되는 항목을 모두 골라 주세요.</p>
-            <div className="chip-row no-label">
+            <div className="chip-row no-label chip-row-positive">
               {goodTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${goodTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setGoodTags)}>{tag}</button>
               ))}
             </div>
           </div>
-          <div className="review-choice-card">
+          <div className="review-choice-card review-choice-concern">
             <span className="field-title">아쉬웠던 점</span>
             <p className="field-help">솔직하게 골라 주세요. 경험 기반 표현으로만 공개됩니다.</p>
             <div className="chip-row no-label chip-row-concern">
@@ -236,10 +236,10 @@ export default function ReviewNewPage() {
               ))}
             </div>
           </div>
-          <div className="review-choice-card">
+          <div className="review-choice-card review-choice-caution">
             <span className="field-title">주의할 점</span>
             <p className="field-help">선택 입력이에요.</p>
-            <div className="chip-row no-label">
+            <div className="chip-row no-label chip-row-caution">
               {cautionTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${cautionTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setCautionTags)}>{tag}</button>
               ))}

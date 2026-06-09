@@ -26,10 +26,10 @@ export default function ReviewCard({ review }: { review: Review }) {
       </div>
       {summary && <p className="review-summary">“{summary}”</p>}
       <div className="review-body">
-        {feedbackTags.length > 0 && <TagGroup title="피드백 스타일" icon="*" tags={feedbackTags} />}
-        {goodTags.length > 0 && <TagGroup title="좋았던 점" icon="+" tags={goodTags} />}
+        {feedbackTags.length > 0 && <TagGroup title="피드백 스타일" icon="*" tags={feedbackTags} tone="feedback" />}
+        {goodTags.length > 0 && <TagGroup title="좋았던 점" icon="+" tags={goodTags} tone="positive" />}
         {concernTags.length > 0 && <TagGroup title="아쉬웠던 점" icon="!" tags={concernTags} tone="concern" />}
-        {cautionTags.length > 0 && <TagGroup title="주의할 점" icon="?" tags={cautionTags} />}
+        {cautionTags.length > 0 && <TagGroup title="주의할 점" icon="?" tags={cautionTags} tone="caution" />}
         {review.detail && <p><b>자세한 후기</b>{review.detail}</p>}
       </div>
     </article>
