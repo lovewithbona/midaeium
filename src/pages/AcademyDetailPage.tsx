@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
 import { academies, getAcademyMapUrl } from "../data/academies";
@@ -7,7 +7,8 @@ import { getAcademyReviewStats } from "../utils/reviewStats";
 
 export default function AcademyDetailPage() {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<"info" | "reviews">("info");
+  const [params, setParams] = useSearchParams();
+  const activeTab = params.get("tab") === "reviews" ? "reviews" : "info";
   const academy = academies.find((item) => item.id === id);
 
   if (!academy) {
@@ -38,7 +39,7 @@ export default function AcademyDetailPage() {
         <button
           type="button"
           className={activeTab === "info" ? "active" : ""}
-          onClick={() => setActiveTab("info")}
+          onClick={() => setParams({})}
           role="tab"
           aria-selected={activeTab === "info"}
         >
@@ -47,7 +48,7 @@ export default function AcademyDetailPage() {
         <button
           type="button"
           className={activeTab === "reviews" ? "active" : ""}
-          onClick={() => setActiveTab("reviews")}
+          onClick={() => setParams({ tab: "reviews" })}
           role="tab"
           aria-selected={activeTab === "reviews"}
         >

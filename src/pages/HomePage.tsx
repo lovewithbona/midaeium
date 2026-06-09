@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import AcademyCard from "../components/AcademyCard";
 import CTABox from "../components/CTABox";
 import FilterChips from "../components/FilterChips";
@@ -9,8 +10,9 @@ import { demoReviews } from "../data/reviews";
 
 export default function HomePage() {
   const [region, setRegion] = useState("전체");
+  const [page, setPage] = useState(1);
   const recentItems = demoReviews.slice(0, 3);
-  const previewAcademies = useMemo(() => {
+  const filteredAcademies = useMemo(() => {
     const filtered = academies.filter((academy) => region === "전체" || academy.region === region);
 
     return [...filtered]
@@ -21,9 +23,17 @@ export default function HomePage() {
         }
 
         return a.name.localeCompare(b.name, "ko");
-      })
-      .slice(0, 4);
+      });
   }, [region]);
+  const pageSize = 4;
+  const totalPages = Math.max(1, Math.ceil(filteredAcademies.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const previewAcademies = filteredAcademies.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  function handleRegionChange(nextRegion: string) {
+    setRegion(nextRegion);
+    setPage(1);
+  }
 
   return (
     <PageLayout>
@@ -40,7 +50,15 @@ export default function HomePage() {
           <section className="section">
             <h2>학원 정보 둘러보기</h2>
             <div className="filters-preview">
-              <FilterChips label="지역" items={regions} value={region} onChange={setRegion} />
+              <FilterChips label="지역" items={regions} value={region} onChange={handleRegionChange} />
+            </div>
+            <div className="home-list-head">
+              <span>{region === "전체" ? "전체" : region} 결과 {filteredAcademies.length}개</span>
+              <div className="pagination-controls" aria-label="학원 목록 페이지">
+                <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={currentPage === 1}>이전</button>
+                <strong>{currentPage} / {totalPages}</strong>
+                <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={currentPage === totalPages}>다음</button>
+              </div>
             </div>
             <div className="academy-grid">
               {previewAcademies.map((academy) => (
@@ -55,13 +73,13 @@ export default function HomePage() {
             <h2>최근 학원 리뷰</h2>
             <div className="recent-list">
               {recentItems.map((review) => (
-                <div key={review.id} className="recent-item">
+                <Link key={review.id} className="recent-item recent-link" to={`/academies/${review.academyId}?tab=reviews`}>
                   <div>
                     <strong>{review.academyName}</strong>
                     <p>{review.pros}</p>
                     <span>익명 · {review.writerStatus}</span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
