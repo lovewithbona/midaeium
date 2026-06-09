@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
-import { academies, getAcademyMapSearchQuery, getAcademyMapUrl } from "../data/academies";
+import { academies, getAcademyMapUrl } from "../data/academies";
 import { getAcademyReviewStats } from "../utils/reviewStats";
 
 export default function AcademyDetailPage() {
@@ -72,7 +72,7 @@ export default function AcademyDetailPage() {
               <strong>{academy.entranceTypes.length > 0 ? academy.entranceTypes.join(", ") : "확인 중"}</strong>
             </div>
             <div>
-              <span>강점 전형</span>
+              <span>강점 입시 유형</span>
               <strong>{academy.strongTypes.length > 0 ? academy.strongTypes.join(", ") : "확인 중"}</strong>
             </div>
           </div>
@@ -82,15 +82,10 @@ export default function AcademyDetailPage() {
             <dt>자료 상태</dt>
             <dd>{academy.verifiedStatus} · {academy.typeConfidence}</dd>
           </dl>
-          <div className="link-row">
-            {academy.homepageUrl && <a href={academy.homepageUrl} target="_blank" rel="noreferrer">{homepageLabel}</a>}
-            <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">지도 보기</a>
-          </div>
           <div className="map-link-card">
             <span>{academy.region} {academy.district}</span>
             <strong>{academy.address}</strong>
             <p>웹사이트 안에서 바로 보는 지도 기능은 추후 제공 예정입니다.</p>
-            <small>검색어: {getAcademyMapSearchQuery(academy)}</small>
             <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">네이버 지도에서 위치 보기</a>
           </div>
         </div>
