@@ -719,9 +719,14 @@ label input::placeholder {
 }
 
 .map-link-card span,
-.map-link-card p {
+.map-link-card p,
+.map-link-card small {
   margin: 0;
   color: var(--muted);
+}
+
+.map-link-card small {
+  font-size: 13px;
 }
 
 .map-link-card strong {

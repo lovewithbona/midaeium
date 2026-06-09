@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
-import { academies, getNaverMapUrl } from "../data/academies";
+import { academies, getAcademyMapSearchQuery, getAcademyMapUrl } from "../data/academies";
 import { getAcademyReviewStats } from "../utils/reviewStats";
 
 export default function AcademyDetailPage() {
@@ -22,6 +22,7 @@ export default function AcademyDetailPage() {
   }
 
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
+  const homepageLabel = getHomepageLabel(academy.homepageUrl);
 
   return (
     <PageLayout>
@@ -77,19 +78,20 @@ export default function AcademyDetailPage() {
           </div>
           <dl className="detail-list compact">
             <dt>공식 홈페이지</dt>
-            <dd>{academy.homepageUrl ? <a href={academy.homepageUrl} target="_blank" rel="noreferrer">바로가기</a> : "확인 필요"}</dd>
+            <dd>{academy.homepageUrl ? <a href={academy.homepageUrl} target="_blank" rel="noreferrer">{homepageLabel}</a> : "확인 필요"}</dd>
             <dt>자료 상태</dt>
             <dd>{academy.verifiedStatus} · {academy.typeConfidence}</dd>
           </dl>
           <div className="link-row">
-            {academy.homepageUrl && <a href={academy.homepageUrl} target="_blank" rel="noreferrer">홈페이지</a>}
-            <a href={getNaverMapUrl(academy.mapSearchQuery)} target="_blank" rel="noreferrer">지도 보기</a>
+            {academy.homepageUrl && <a href={academy.homepageUrl} target="_blank" rel="noreferrer">{homepageLabel}</a>}
+            <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">지도 보기</a>
           </div>
           <div className="map-link-card">
             <span>{academy.region} {academy.district}</span>
             <strong>{academy.address}</strong>
-            <p>지도 API 권한 승인 전까지는 외부 지도 검색 결과로 연결됩니다.</p>
-            <a href={getNaverMapUrl(academy.mapSearchQuery)} target="_blank" rel="noreferrer">네이버 지도에서 위치 보기</a>
+            <p>웹사이트 안에서 바로 보는 지도 기능은 추후 제공 예정입니다.</p>
+            <small>검색어: {getAcademyMapSearchQuery(academy)}</small>
+            <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">네이버 지도에서 위치 보기</a>
           </div>
         </div>
         )}
@@ -104,4 +106,14 @@ export default function AcademyDetailPage() {
       </section>
     </PageLayout>
   );
+}
+
+function getHomepageLabel(url: string | null) {
+  if (!url) return "";
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "공식 홈페이지";
+  }
 }

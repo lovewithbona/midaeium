@@ -2631,6 +2631,10 @@ export const academySeedsWithTypes: AcademySeedWithTypes[] = [
 
 export const getNaverMapUrl = (query: string) => `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
 
+export const getAcademyMapSearchQuery = (academy: AcademySeedWithTypes) => `${academy.name} ${academy.region} ${academy.district}`;
+
+export const getAcademyMapUrl = (academy: AcademySeedWithTypes) => getNaverMapUrl(getAcademyMapSearchQuery(academy));
+
 export const hasConfirmedType = (academy: AcademySeedWithTypes) => academy.typeConfidence === "공식 확인" || academy.typeConfidence === "보조 출처 확인";
 
 export const getEntranceTypeLabel = (academy: AcademySeedWithTypes) => academy.entranceTypes.length > 0 ? academy.entranceTypes.join(" · ") : "준비 가능 전형 확인 중";

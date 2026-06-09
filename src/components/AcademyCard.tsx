@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { getNaverMapUrl, type Academy } from "../data/academies";
+import { getAcademyMapUrl, type Academy } from "../data/academies";
 import { getAcademyReviewStats } from "../utils/reviewStats";
 
 export default function AcademyCard({ academy }: { academy: Academy }) {
@@ -60,7 +60,7 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
         <span>리뷰 {reviewCount}개</span>
         <div className="card-links">
           <Link to={detailUrl} onClick={(event) => event.stopPropagation()}>자세히 보기</Link>
-          <a href={getNaverMapUrl(academy.mapSearchQuery)} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>지도 보기</a>
+          <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>지도 보기</a>
         </div>
       </div>
     </article>
