@@ -230,8 +230,10 @@ function ChecklistBlock({
       <ul>
         {items.map((item) => (
           <li key={item.id}>
-            <strong>{item.title}</strong>
-            <span>{item.description}</span>
+            <details>
+              <summary>{item.title}</summary>
+              <span>{item.description}</span>
+            </details>
           </li>
         ))}
       </ul>
