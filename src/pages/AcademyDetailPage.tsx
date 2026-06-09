@@ -23,7 +23,7 @@ export default function AcademyDetailPage() {
   }
 
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
-  const homepageLabel = getHomepageLabel(academy.homepageUrl);
+  const homepageLabel = getHomepageLabel(academy.officialWebsiteUrl);
 
   return (
     <PageLayout>
@@ -79,9 +79,18 @@ export default function AcademyDetailPage() {
           </div>
           <dl className="detail-list compact">
             <dt>공식 홈페이지</dt>
-            <dd>{academy.homepageUrl ? <a href={academy.homepageUrl} target="_blank" rel="noreferrer">{homepageLabel}</a> : "확인 필요"}</dd>
-            <dt>자료 상태</dt>
-            <dd>{academy.verifiedStatus} · {academy.typeConfidence}</dd>
+            <dd>{academy.officialWebsiteUrl ? <a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">{homepageLabel}</a> : "확인 필요"}</dd>
+            <dt>운영 채널</dt>
+            <dd>
+              <div className="channel-links">
+                {academy.officialWebsiteUrl && <a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">공식 홈페이지</a>}
+                {academy.instagramUrl && <a href={academy.instagramUrl} target="_blank" rel="noreferrer">인스타그램</a>}
+                {academy.naverBlogUrl && <a href={academy.naverBlogUrl} target="_blank" rel="noreferrer">네이버 블로그</a>}
+                {!academy.officialWebsiteUrl && !academy.instagramUrl && !academy.naverBlogUrl && <span>확인 필요</span>}
+              </div>
+            </dd>
+            <dt>채널 확인</dt>
+            <dd>{academy.channelConfidence}</dd>
           </dl>
           <div className="map-link-card">
             <span>{academy.region} {academy.district}</span>

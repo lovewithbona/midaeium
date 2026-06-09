@@ -500,6 +500,24 @@ dd {
   text-underline-offset: 4px;
 }
 
+.channel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.channel-links a,
+.channel-links span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+}
+
 .link-row a {
   color: var(--point-dark);
   font-weight: 620;

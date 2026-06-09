@@ -8,7 +8,7 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
   const entranceTypes = academy.entranceTypes.length > 0 ? academy.entranceTypes : ["준비 가능 전형 확인 중"];
   const strongTypes = academy.strongTypes.length > 0 ? academy.strongTypes : ["강점 전형 확인 중"];
   const detailUrl = `/academies/${academy.id}`;
-  const homepageDomain = getDomain(academy.homepageUrl);
+  const homepageDomain = getDomain(academy.officialWebsiteUrl);
 
   function openDetail() {
     navigate(detailUrl);
@@ -60,6 +60,9 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
         <span>리뷰 {reviewCount}개</span>
         <div className="card-links">
           <Link to={detailUrl} onClick={(event) => event.stopPropagation()}>자세히 보기</Link>
+          {academy.officialWebsiteUrl && <a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>공식 홈페이지</a>}
+          {academy.instagramUrl && <a href={academy.instagramUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>인스타그램</a>}
+          {academy.naverBlogUrl && <a href={academy.naverBlogUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>네이버 블로그</a>}
           <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>지도 보기</a>
         </div>
       </div>

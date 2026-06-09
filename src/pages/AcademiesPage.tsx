@@ -33,7 +33,7 @@ export default function AcademiesPage() {
 
     return [...filtered].sort((a, b) => {
       if (region === "전체" && sort === "latest") {
-        const homepagePriority = Number(Boolean(b.homepageUrl)) - Number(Boolean(a.homepageUrl));
+        const homepagePriority = Number(Boolean(b.officialWebsiteUrl)) - Number(Boolean(a.officialWebsiteUrl));
         if (homepagePriority !== 0) return homepagePriority;
       }
 

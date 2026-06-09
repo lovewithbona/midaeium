@@ -3,6 +3,8 @@
 // 주의: entranceTypes는 공식 확인/보조 출처 확인/이름 기반 1차 분류/확인 필요로 나뉩니다.
 // 실제 서비스 반영 전에는 typeConfidence가 "공식 확인"이 아닌 항목을 반드시 학원 공식 채널/지도/전화로 검수하세요.
 
+import { academyChannelOverrides, type AcademyChannelConfidence } from "./academyChannelOverrides";
+
 export type EntranceType =
   | "기초디자인"
   | "기초소양"
@@ -39,6 +41,15 @@ export type AcademySeedWithTypes = {
   typeSourceUrl: string | null;
   typeConfidence: TypeConfidence;
   typeMemo: string;
+};
+
+export type AcademyWithChannels = AcademySeedWithTypes & {
+  officialWebsiteUrl: string | null;
+  instagramUrl: string | null;
+  naverBlogUrl: string | null;
+  channelConfidence: AcademyChannelConfidence;
+  channelMemo: string;
+  channelSourceUrls: string[];
 };
 
 export const academySeedsWithTypes: AcademySeedWithTypes[] = [
@@ -2639,7 +2650,60 @@ export const hasConfirmedType = (academy: AcademySeedWithTypes) => academy.typeC
 
 export const getEntranceTypeLabel = (academy: AcademySeedWithTypes) => academy.entranceTypes.length > 0 ? academy.entranceTypes.join(" · ") : "준비 가능 전형 확인 중";
 
-export type Academy = AcademySeedWithTypes;
+export function applyAcademyChannelOverrides(items: AcademySeedWithTypes[]): AcademyWithChannels[] {
+  const overrideById = new Map(academyChannelOverrides.map((override) => [override.id, override]));
+
+  return items.map((academy) => {
+    const baseChannels = getBaseChannels(academy.homepageUrl);
+    const override = overrideById.get(academy.id);
+
+    return {
+      ...academy,
+      officialWebsiteUrl: override?.officialWebsiteUrl ?? baseChannels.officialWebsiteUrl,
+      instagramUrl: override?.instagramUrl ?? baseChannels.instagramUrl,
+      naverBlogUrl: override?.naverBlogUrl ?? baseChannels.naverBlogUrl,
+      channelConfidence: override?.channelConfidence ?? (academy.homepageUrl ? "기존 데이터 기반" : "확인 필요"),
+      channelMemo: override?.channelMemo ?? (academy.homepageUrl ? "기존 seed data의 홈페이지 URL을 채널 필드로 분리했습니다." : "공식 채널 확인이 필요합니다."),
+      channelSourceUrls: override?.channelSourceUrls ?? (academy.homepageUrl ? [academy.homepageUrl] : []),
+    };
+  });
+}
+
+function getBaseChannels(url: string | null) {
+  const normalizedUrl = url ?? null;
+
+  if (!normalizedUrl) {
+    return {
+      officialWebsiteUrl: null,
+      instagramUrl: null,
+      naverBlogUrl: null,
+    };
+  }
+
+  if (normalizedUrl.includes("instagram.com")) {
+    return {
+      officialWebsiteUrl: null,
+      instagramUrl: normalizedUrl,
+      naverBlogUrl: null,
+    };
+  }
+
+  if (normalizedUrl.includes("blog.naver.com") || normalizedUrl.includes("m.blog.naver.com")) {
+    return {
+      officialWebsiteUrl: null,
+      instagramUrl: null,
+      naverBlogUrl: normalizedUrl,
+    };
+  }
+
+  return {
+    officialWebsiteUrl: normalizedUrl,
+    instagramUrl: null,
+    naverBlogUrl: null,
+  };
+}
+
+export type Academy = AcademyWithChannels;
 
 export type Review = {
   id: string;
@@ -2667,7 +2731,7 @@ export type Review = {
   status: "public" | "pending";
 };
 
-export const academies: Academy[] = academySeedsWithTypes;
+export const academies: Academy[] = applyAcademyChannelOverrides(academySeedsWithTypes);
 
 export const regions = [
   "전체",
