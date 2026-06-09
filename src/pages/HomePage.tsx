@@ -29,8 +29,8 @@ export default function HomePage() {
               </Link>
               <Link className="home-entry-card guide" to="/guide">
                 <span>입시 가이드</span>
-                <h3>미대 입시 기본 용어부터 이해하기</h3>
-                <p>수시, 정시, 실기 유형, 학원 선택 기준처럼 처음 헷갈리는 내용을 먼저 정리해 볼 수 있어.</p>
+                <h3>나는 어떤 전형을 선택해야 할까?</h3>
+                <p>전공 방향, 실기 유형, 학원 선택 기준을 순서대로 확인하면서 내 준비 방향을 잡아볼 수 있어.</p>
               </Link>
             </div>
           </section>
