@@ -1344,12 +1344,13 @@ input::placeholder {
   }
 
   .site-preview {
-    width: min(52%, 180px);
-    padding: 12px;
+    display: none;
   }
 
-  .site-preview i {
-    height: 34px;
+  .academy-visual.has-homepage {
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 0;
   }
 
   .tool-actions {
