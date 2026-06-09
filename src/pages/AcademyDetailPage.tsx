@@ -80,17 +80,10 @@ export default function AcademyDetailPage() {
           <dl className="detail-list compact">
             <dt>공식 홈페이지</dt>
             <dd>{academy.officialWebsiteUrl ? <a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">{homepageLabel}</a> : "확인 필요"}</dd>
-            <dt>운영 채널</dt>
-            <dd>
-              <div className="channel-links">
-                {academy.officialWebsiteUrl && <a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">공식 홈페이지</a>}
-                {academy.instagramUrl && <a href={academy.instagramUrl} target="_blank" rel="noreferrer">인스타그램</a>}
-                {academy.naverBlogUrl && <a href={academy.naverBlogUrl} target="_blank" rel="noreferrer">네이버 블로그</a>}
-                {!academy.officialWebsiteUrl && !academy.instagramUrl && !academy.naverBlogUrl && <span>확인 필요</span>}
-              </div>
-            </dd>
-            <dt>채널 확인</dt>
-            <dd>{academy.channelConfidence}</dd>
+            <dt>인스타그램</dt>
+            <dd>{academy.instagramUrl ? <a href={academy.instagramUrl} target="_blank" rel="noreferrer">인스타그램 보기</a> : "확인 필요"}</dd>
+            <dt>네이버 블로그</dt>
+            <dd>{academy.naverBlogUrl ? <a href={academy.naverBlogUrl} target="_blank" rel="noreferrer">네이버 블로그 보기</a> : "확인 필요"}</dd>
           </dl>
           <div className="map-link-card">
             <span>{academy.region} {academy.district}</span>

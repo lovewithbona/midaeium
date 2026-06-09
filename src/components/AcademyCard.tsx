@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { getAcademyMapUrl, type Academy } from "../data/academies";
+import { useNavigate } from "react-router-dom";
+import { type Academy } from "../data/academies";
 import { getAcademyReviewStats } from "../utils/reviewStats";
 
 export default function AcademyCard({ academy }: { academy: Academy }) {
@@ -58,13 +58,6 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
       {academy.typeConfidence === "확인 필요" && <p className="type-note">전형 확인 필요</p>}
       <div className="card-footer">
         <span>리뷰 {reviewCount}개</span>
-        <div className="card-links">
-          <Link to={detailUrl} onClick={(event) => event.stopPropagation()}>자세히 보기</Link>
-          {academy.officialWebsiteUrl && <a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>공식 홈페이지</a>}
-          {academy.instagramUrl && <a href={academy.instagramUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>인스타그램</a>}
-          {academy.naverBlogUrl && <a href={academy.naverBlogUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>네이버 블로그</a>}
-          <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>지도 보기</a>
-        </div>
       </div>
     </article>
   );

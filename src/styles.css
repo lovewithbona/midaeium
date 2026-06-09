@@ -24,11 +24,23 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   min-width: 0;
   background: var(--bg);
-  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 a {
@@ -101,6 +113,7 @@ button {
 
 .page {
   width: min(100%, 1180px);
+  max-width: 100%;
   margin: 0 auto;
   padding: 52px clamp(28px, 5vw, 52px) 84px;
   overflow-x: clip;
@@ -326,7 +339,9 @@ p {
 
 .academy-card {
   display: flex;
+  max-width: 100%;
   min-height: 0;
+  min-width: 0;
   flex-direction: column;
   padding: 0;
   cursor: pointer;
@@ -372,6 +387,7 @@ p {
 
 .site-preview {
   width: min(56%, 220px);
+  min-width: 0;
   display: grid;
   align-self: stretch;
   align-content: start;
@@ -481,54 +497,19 @@ dt {
 }
 
 dd {
+  min-width: 0;
   margin: 0;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .card-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: center;
+  display: block;
   margin-top: auto;
   padding: 18px 22px 22px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 14px;
-}
-
-.card-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  min-width: 0;
-}
-
-.card-links a {
-  overflow-wrap: anywhere;
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.channel-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-width: 0;
-}
-
-.channel-links a,
-.channel-links span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--text);
-  font-size: 13px;
-  overflow-wrap: anywhere;
 }
 
 .link-row a {
@@ -897,13 +878,14 @@ label input::placeholder {
 }
 
 .status-pill {
-  white-space: nowrap;
+  max-width: 100%;
   padding: 4px 8px;
   border-radius: 0;
   background: var(--soft-2);
   color: var(--point-dark);
   font-size: 12px;
   font-weight: 620;
+  overflow-wrap: anywhere;
 }
 
 .heart-readout {
@@ -1324,8 +1306,6 @@ input::placeholder {
     width: 100%;
   }
 
-  .card-links,
-  .channel-links,
   .home-list-head,
   .pagination-controls {
     width: 100%;
@@ -1363,6 +1343,24 @@ input::placeholder {
 
   .detail-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .detail-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .detail-list dd {
+    margin-bottom: 10px;
+  }
+
+  .site-preview {
+    width: min(52%, 180px);
+    padding: 12px;
+  }
+
+  .site-preview i {
+    height: 34px;
   }
 
   .tool-actions {
