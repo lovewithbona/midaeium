@@ -1615,6 +1615,33 @@ input::placeholder {
     grid-template-columns: 1fr;
   }
 
+  .home-entry-grid {
+    gap: 14px;
+  }
+
+  .home-entry-card,
+  .home-entry-card.guide {
+    min-height: auto;
+    align-content: start;
+    padding: 22px 20px;
+    background: var(--surface);
+  }
+
+  .home-entry-card span {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+  }
+
+  .home-entry-card.guide span {
+    background: var(--soft);
+    color: var(--point);
+  }
+
+  .home-entry-card h3 {
+    font-size: 22px;
+    line-height: 1.35;
+  }
+
   .page {
     padding: 28px 16px 64px;
   }

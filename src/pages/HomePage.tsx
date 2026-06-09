@@ -25,12 +25,12 @@ export default function HomePage() {
               <Link className="home-entry-card" to="/academies">
                 <span>학원 찾기</span>
                 <h3>지역과 전형에 맞는 학원 찾기</h3>
-                <p>152개 학원 후보를 지역, 유형, 이름으로 검색하고 실제 리뷰를 비교해 볼 수 있어.</p>
+                <p>152개 학원 후보를 지역, 유형, 이름으로 검색하고 실제 리뷰를 비교해 볼 수 있습니다.</p>
               </Link>
               <Link className="home-entry-card guide" to="/guide">
                 <span>입시 가이드</span>
                 <h3>나는 어떤 전형을 선택해야 할까?</h3>
-                <p>전공 방향, 실기 유형, 학원 선택 기준을 순서대로 확인하면서 내 준비 방향을 잡아볼 수 있어.</p>
+                <p>전공 방향, 실기 유형, 학원 선택 기준을 순서대로 확인하면서 준비 방향을 잡아볼 수 있습니다.</p>
               </Link>
             </div>
           </section>
