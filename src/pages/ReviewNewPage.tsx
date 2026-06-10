@@ -147,11 +147,11 @@ export default function ReviewNewPage() {
       </div>
       <form className="review-form" onSubmit={handleSubmit}>
         <section className="form-section">
-          <h2>학원 선택 <RequiredMark /></h2>
+          <h2>학원 선택</h2>
           {!isNewAcademy ? (
             <div className="choice-toolbar">
               <label>
-                학원명 검색 <RequiredMark />
+                학원명 검색
                 <input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="학원명, 위치, 주소를 입력해 주세요" />
               </label>
               <button type="button" className="secondary-button" onClick={() => setIsNewAcademy(true)}>
@@ -162,7 +162,6 @@ export default function ReviewNewPage() {
             <div className="choice-toolbar">
               <div>
                 <strong>새 학원 정보 등록</strong>
-                <p className="field-help">검색창 대신 새 학원 정보를 입력해 주세요.</p>
               </div>
               <button type="button" className="secondary-button" onClick={() => setIsNewAcademy(false)}>
                 검색으로 선택하기
@@ -184,9 +183,9 @@ export default function ReviewNewPage() {
           )}
           {isNewAcademy && (
             <div className="form-grid">
-              <label>학원명 <RequiredMark /><input value={form.newName} onChange={(event) => updateField("newName", event.target.value)} /></label>
-              <label>지역 <RequiredMark /><select value={form.newRegion} onChange={(event) => updateField("newRegion", event.target.value)}>{regions.filter((region) => region !== "전체").map((region) => <option key={region}>{region}</option>)}</select></label>
-              <label className="wide">주소 <RequiredMark /><input value={form.newAddress} onChange={(event) => updateField("newAddress", event.target.value)} /></label>
+              <label>학원명<input value={form.newName} onChange={(event) => updateField("newName", event.target.value)} /></label>
+              <label>지역<select value={form.newRegion} onChange={(event) => updateField("newRegion", event.target.value)}>{regions.filter((region) => region !== "전체").map((region) => <option key={region}>{region}</option>)}</select></label>
+              <label className="wide">주소<input value={form.newAddress} onChange={(event) => updateField("newAddress", event.target.value)} /></label>
             </div>
           )}
         </section>
@@ -195,7 +194,7 @@ export default function ReviewNewPage() {
           <h2>리뷰 작성</h2>
           <div className="review-step-grid">
             <div className="review-field-block rating-field">
-              <span className="field-title">만족도 <RequiredMark /></span>
+              <span className="field-title">만족도</span>
               <div className="heart-rating" role="radiogroup" aria-label="만족도">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button type="button" key={value} className={value <= rating ? "active" : ""} onClick={() => setRating(value)} aria-label={`${value}점`}>
@@ -206,15 +205,15 @@ export default function ReviewNewPage() {
               </div>
             </div>
             <div className="form-grid compact-selects">
-              <label>수업 분위기 <RequiredMark /><select value={form.atmosphere} onChange={(event) => updateField("atmosphere", event.target.value)}>{moods.map((mood) => <option key={mood}>{mood}</option>)}</select></label>
-              <label>과제량 <RequiredMark /><select value={form.homeworkLoad} onChange={(event) => updateField("homeworkLoad", event.target.value)}>{homeworkLoads.map((load) => <option key={load}>{load}</option>)}</select></label>
-              <label>수업 난이도 <RequiredMark /><select value={form.classLevel} onChange={(event) => updateField("classLevel", event.target.value)}>{classLevels.map((level) => <option key={level}>{level}</option>)}</select></label>
+              <label>수업 분위기<select value={form.atmosphere} onChange={(event) => updateField("atmosphere", event.target.value)}>{moods.map((mood) => <option key={mood}>{mood}</option>)}</select></label>
+              <label>과제량<select value={form.homeworkLoad} onChange={(event) => updateField("homeworkLoad", event.target.value)}>{homeworkLoads.map((load) => <option key={load}>{load}</option>)}</select></label>
+              <label>수업 난이도<select value={form.classLevel} onChange={(event) => updateField("classLevel", event.target.value)}>{classLevels.map((level) => <option key={level}>{level}</option>)}</select></label>
             </div>
           </div>
           <details className="review-details">
             <summary>전형 선택</summary>
             <div className="review-field-block">
-              <span className="field-title">준비 가능 전형 <RequiredMark /></span>
+              <span className="field-title">준비 가능 전형</span>
               <div className="chip-row no-label">
                 {types.map((type) => (
                   <button type="button" key={type} className={`chip ${preparedTypes.includes(type) ? "active" : ""}`} onClick={() => toggleType(type)}>{type}</button>
@@ -222,7 +221,7 @@ export default function ReviewNewPage() {
               </div>
             </div>
             <div className="review-field-block">
-              <span className="field-title">강점 전형 <RequiredMark /></span>
+              <span className="field-title">강점 전형</span>
               <div className="chip-row no-label">
                 {types.map((type) => (
                   <button type="button" key={type} className={`chip ${strongTypes.includes(type) ? "active" : ""}`} onClick={() => toggleStrongType(type)}>{type}</button>
@@ -231,8 +230,7 @@ export default function ReviewNewPage() {
             </div>
           </details>
           <div className="review-choice-card review-choice-feedback">
-            <span className="field-title">피드백 스타일 <RequiredMark /></span>
-            <p className="field-help">선생님 피드백이 어떻게 느껴졌는지 골라 주세요.</p>
+            <span className="field-title">피드백 스타일</span>
             <div className="chip-row no-label chip-row-feedback">
               {feedbackStyles.map((tag) => (
                 <button type="button" key={tag} className={`chip ${feedbackTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setFeedbackTags)}>{tag}</button>
@@ -240,8 +238,7 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="review-choice-card review-choice-positive">
-            <span className="field-title">좋았던 점 <RequiredMark /></span>
-            <p className="field-help">해당되는 항목을 모두 골라 주세요.</p>
+            <span className="field-title">좋았던 점</span>
             <div className="chip-row no-label chip-row-positive">
               {goodTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${goodTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setGoodTags)}>{tag}</button>
@@ -249,8 +246,7 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="review-choice-card review-choice-concern">
-            <span className="field-title">아쉬웠던 점 <RequiredMark /></span>
-            <p className="field-help">솔직하게 골라 주세요. 경험 기반 표현으로만 공개됩니다.</p>
+            <span className="field-title">아쉬웠던 점</span>
             <div className="chip-row no-label chip-row-concern">
               {concernTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${concernTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setConcernTags)}>{tag}</button>
@@ -259,7 +255,6 @@ export default function ReviewNewPage() {
           </div>
           <div className="review-choice-card review-choice-caution">
             <span className="field-title">주의할 점</span>
-            <p className="field-help">선택 입력입니다.</p>
             <div className="chip-row no-label chip-row-caution">
               {cautionTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${cautionTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setCautionTags)}>{tag}</button>
@@ -267,15 +262,15 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="form-grid">
-            <label className="wide">자세한 후기 <RequiredMark /><textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업을 들으며 실제로 느낀 분위기, 좋았던 점, 조심해야 할 점을 구체적으로 적어 주세요." /><small>{form.detail.trim().length}/{MIN_DETAIL_LENGTH}자 이상</small></label>
+            <label className="wide">자세한 후기<textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업을 들으며 실제로 느낀 분위기, 좋았던 점, 조심해야 할 점을 구체적으로 적어 주세요." /><small>{form.detail.trim().length}/{MIN_DETAIL_LENGTH}자 이상</small></label>
           </div>
         </section>
 
         <section className="form-section">
           <h2>작성자 정보</h2>
           <div className="form-grid">
-            <label>현재 상태 <RequiredMark /><select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select></label>
-            <label>전화번호 <RequiredMark /><input type="tel" value={form.contact} onChange={(event) => updateField("contact", event.target.value)} placeholder="운영자 확인용" /></label>
+            <label>현재 상태<select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select></label>
+            <label>전화번호<input type="tel" value={form.contact} onChange={(event) => updateField("contact", event.target.value)} placeholder="운영자 확인용" /></label>
             <label>학원 다닌 년도<input value={form.attendedYear} onChange={(event) => updateField("attendedYear", event.target.value)} placeholder="선택 입력 예: 2025년" /></label>
           </div>
           <p className="muted">허위 리뷰나 조작 가능성에 대비해 작성자 확인용으로만 받습니다. 사이트에는 공개되지 않고 운영자만 확인합니다.</p>
@@ -284,8 +279,4 @@ export default function ReviewNewPage() {
       </form>
     </PageLayout>
   );
-}
-
-function RequiredMark() {
-  return <span className="required-mark" aria-label="필수">*</span>;
 }

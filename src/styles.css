@@ -994,9 +994,9 @@ label input::placeholder {
 }
 
 .review-notice-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
   gap: 18px;
 }
 
@@ -1006,6 +1006,11 @@ label input::placeholder {
 
 .review-notice-box p:last-child {
   margin-bottom: 0;
+}
+
+.review-notice-box .secondary-button {
+  min-width: 132px;
+  white-space: nowrap;
 }
 
 .review-form {
@@ -1068,13 +1073,6 @@ label input::placeholder {
 
 .review-choice-card + .form-grid {
   margin-top: 34px;
-}
-
-.field-help {
-  margin: 6px 0 12px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.5;
 }
 
 .form-grid {
@@ -1202,11 +1200,6 @@ input::placeholder {
 .radio-card small {
   grid-column: 2;
   color: var(--muted);
-}
-
-.required-mark {
-  color: #d04f3f;
-  font-weight: 760;
 }
 
 .submit-button {
@@ -1732,8 +1725,7 @@ input::placeholder {
   }
 
   .review-notice-box {
-    align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .button-row {
