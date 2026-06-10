@@ -1,12 +1,20 @@
+import { useState } from "react";
 import type { Review } from "../data/academies";
+import { addReviewLike, getReviewLikeCount } from "../utils/storage";
 
-export default function ReviewCard({ review }: { review: Review }) {
+export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
   const strongTypes = review.strongTypes?.join(", ") || "전형 미입력";
   const goodTags = review.goodTags?.length ? review.goodTags : review.pros ? [review.pros] : [];
   const concernTags = review.concernTags?.length ? review.concernTags : review.cons ? [review.cons] : [];
   const cautionTags = review.cautionTags || [];
   const feedbackTags = review.feedbackTags || [];
   const summary = review.summary || review.pros;
+  const [likes, setLikes] = useState(() => getReviewLikeCount(review));
+
+  function handleLike() {
+    setLikes(addReviewLike(review.id) + (review.likes || 0));
+    onLike?.();
+  }
 
   return (
     <article className="review-card">
@@ -32,6 +40,9 @@ export default function ReviewCard({ review }: { review: Review }) {
         {cautionTags.length > 0 && <TagGroup title="주의할 점" icon="?" tags={cautionTags} tone="caution" />}
         {review.detail && <p><b>자세한 후기</b>{review.detail}</p>}
       </div>
+      <button className="review-like-button" type="button" onClick={handleLike}>
+        좋아요 {likes}
+      </button>
     </article>
   );
 }

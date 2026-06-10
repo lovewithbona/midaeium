@@ -8,6 +8,7 @@ import { getAcademyReviewStats } from "../utils/reviewStats";
 export default function AcademyDetailPage() {
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
+  const [, setLikeTick] = useState(0);
   const activeTab = params.get("tab") === "reviews" ? "reviews" : "info";
   const academy = academies.find((item) => item.id === id);
 
@@ -111,8 +112,9 @@ export default function AcademyDetailPage() {
         {activeTab === "reviews" && (
         <div className="detail-card review-panel">
           <h2>등록된 리뷰 {reviewCount}개</h2>
+          <p className="muted review-sort-note">좋아요가 많은 리뷰부터 보여줍니다.</p>
           <div className="review-list">
-            {reviews.length > 0 ? reviews.map((review) => <ReviewCard key={review.id} review={review} />) : <p className="muted">아직 이 학원에 등록된 리뷰가 없어요.</p>}
+            {reviews.length > 0 ? reviews.map((review) => <ReviewCard key={review.id} review={review} onLike={() => setLikeTick((value) => value + 1)} />) : <p className="muted">아직 이 학원에 등록된 리뷰가 없어요.</p>}
           </div>
         </div>
         )}
