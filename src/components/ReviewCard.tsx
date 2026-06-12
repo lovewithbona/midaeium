@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { Review } from "../data/academies";
 import { addReviewReaction, getReviewReactionCount, hasReactedToReview, type ReviewReactionType } from "../utils/storage";
-import { createHashtag, getReviewPreview, type KeywordTone } from "../utils/reviewStats";
+import { createHashtag, getReviewDisplayDetail, getReviewPreview, type KeywordTone } from "../utils/reviewStats";
 
 export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
   const preview = getReviewPreview(review, 90);
+  const displayDetail = getReviewDisplayDetail(review);
   const hashtags = getReviewTagItems(review).slice(0, 10);
   const [reactionState, setReactionState] = useState(() => ({
     empathy: {
@@ -35,7 +36,7 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   return (
     <article className="review-card">
       <div className="review-head">
-        <strong>{review.writerStatus || "작성자"}</strong>
+        <strong>{getReviewMetaText(review)}</strong>
         {review.status === "pending" && <span className="status-pill">검토 대기</span>}
         {review.status === "held" && <span className="status-pill muted-pill">보류</span>}
         {(review.status === "rejected" || review.status === "hidden") && <span className="status-pill muted-pill">제외됨</span>}
@@ -57,15 +58,16 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
             {hashtags.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${tag.tone}-${tag.label}`}>{tag.label}</span>)}
           </div>
         )}
-        {review.detail && (
+        {displayDetail && (
           <div className="review-detail-preview">
             <b>자세한 후기</b>
-            <p className={isExpanded ? "" : "clamped"}>{review.detail}</p>
-            {review.detail.length > 90 && (
+            <p className={isExpanded ? "" : "clamped"}>{displayDetail}</p>
+            {displayDetail.length > 90 && (
               <button type="button" className="text-button" onClick={() => setIsExpanded((value) => !value)}>
                 {isExpanded ? "접기" : "자세히 보기"}
               </button>
             )}
+            {review.admissionResult && <small className="review-meta-note">합격 여부: {review.admissionResult}</small>}
           </div>
         )}
       </div>
@@ -89,6 +91,15 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       </div>
     </article>
   );
+}
+
+function getReviewMetaText(review: Review) {
+  return [
+    "익명",
+    review.writerStatus,
+    review.attendedYear ? `${review.attendedYear} 수강` : "",
+    review.attendedPeriod,
+  ].filter(Boolean).join(" · ");
 }
 
 function getReviewTagItems(review: Review) {

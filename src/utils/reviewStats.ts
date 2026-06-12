@@ -100,8 +100,13 @@ export function getRepresentativeReview(reviews: Review[]) {
 }
 
 export function getReviewPreview(review: Review, length = 60) {
-  const text = review.summary || review.detail || "";
+  const displayDetail = getReviewDisplayDetail(review);
+  const text = review.summary || displayDetail || "";
   return text.length > length ? `${text.slice(0, length)}...` : text;
+}
+
+export function getReviewDisplayDetail(review: Review) {
+  return review.detailPublic || review.detailOriginal || review.detail || "";
 }
 
 function countLabels(labels: string[]) {

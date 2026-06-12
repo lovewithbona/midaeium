@@ -4,7 +4,7 @@ import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
 import { academies, type ReviewStatus } from "../data/academies";
 import type { Review } from "../data/academies";
-import { getAllReviews } from "../utils/reviewStats";
+import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
 import { clearFakeUser, getFakeUser, saveModerationStatus } from "../utils/storage";
 
 const moderationSections: { status: ReviewStatus; title: string; description: string }[] = [
@@ -160,12 +160,33 @@ function AdminModerationSection({ status, title, description, reviews, onChangeS
                   </div>
                 )}
               </div>
+              <div className="admin-review-facts">
+                <span>학원명: {review.academyName}</span>
+                {review.writerStatus && <span>작성자: {review.writerStatus}</span>}
+                {review.attendedYear && <span>다닌 년도: {review.attendedYear}</span>}
+                {review.attendedPeriod && <span>다닌 기간: {review.attendedPeriod}</span>}
+                {review.admissionResult && <span>합격 여부: {review.admissionResult}</span>}
+                {review.rating > 0 && <span>만족도: {review.rating}/5</span>}
+                {review.atmosphere && <span>분위기: {review.atmosphere}</span>}
+                {review.homeworkLoad && <span>과제량: {review.homeworkLoad}</span>}
+                {review.classLevel && <span>난이도: {review.classLevel}</span>}
+              </div>
+              {review.reviewSchoolTags && review.reviewSchoolTags.length > 0 && (
+                <div className="admin-review-tags">
+                  <b>주요 대비 대학</b>
+                  <p>{review.reviewSchoolTags.join(", ")}</p>
+                </div>
+              )}
               {review.schoolTextRaw && (
                 <div className="raw-note">
                   <b>강점 학교 원문</b>
                   <p>{review.schoolTextRaw}</p>
                 </div>
               )}
+              <div className="raw-note">
+                <b>자세한 후기 원문</b>
+                <p>{review.detailOriginal || getReviewDisplayDetail(review) || "원문이 없습니다."}</p>
+              </div>
               <ReviewCard review={review} />
               <div className="moderation-actions">
                 <button type="button" className="primary-button" onClick={() => onChangeStatus(review.id, "public")} disabled={status === "public"}>공개 처리</button>

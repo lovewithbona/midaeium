@@ -1994,6 +1994,39 @@ input::placeholder {
   font-size: 12px;
 }
 
+.admin-review-facts,
+.admin-review-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-review-facts span {
+  padding: 4px 7px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-review-tags {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.admin-review-tags b {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-review-tags p {
+  margin: 0;
+  font-size: 13px;
+}
+
 .moderation-flags {
   display: flex;
   flex-wrap: wrap;
@@ -2028,6 +2061,7 @@ input::placeholder {
   color: var(--text);
   font-size: 13px;
   line-height: 1.55;
+  white-space: pre-wrap;
 }
 
 .moderation-actions {
@@ -2060,6 +2094,11 @@ input::placeholder {
 
 .admin-review-item .review-detail-preview p {
   font-size: 13px;
+}
+
+.review-meta-note {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .danger-button {
