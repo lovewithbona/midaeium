@@ -2724,6 +2724,7 @@ export type Review = {
   preparedTypes: string[];
   strongTypes: string[];
   reviewSchoolTags?: string[];
+  reviewSchoolTagsRaw?: string[];
   atmosphere: string;
   rating: number;
   feedbackStyle?: string;

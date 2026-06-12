@@ -4,11 +4,12 @@ import AcademyCard from "../components/AcademyCard";
 import FilterChips from "../components/FilterChips";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
+import { findUniversityByName, getFeaturedUniversities, searchUniversities, universitySeeds } from "../data/universities";
 import { getAcademyAggregatedInsights, getAcademyReviewStats } from "../utils/reviewStats";
 
 const primaryRegions = ["전체", "서울", "경기", "부산", "울산", "대구", "광주"];
 const primaryTypes = ["기초디자인", "기초소양", "발상과 표현", "회화", "조소", "만화·애니"];
-const schoolOptions = ["국민대", "건국대", "홍익대", "서울과기대", "이화여대", "숙명여대", "성신여대", "중앙대", "경희대", "한예종", "기타"];
+const featuredSchoolOptions = getFeaturedUniversities().map((university) => university.name);
 const PAGE_SIZE = 20;
 
 export default function AcademiesPage() {
@@ -17,10 +18,13 @@ export default function AcademiesPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showAllRegions, setShowAllRegions] = useState(false);
   const [showAllTypes, setShowAllTypes] = useState(false);
+  const [showAllSchools, setShowAllSchools] = useState(false);
+  const [schoolKeyword, setSchoolKeyword] = useState("");
   const region = params.get("region") || "전체";
   const type = params.get("type") || "전체";
   const district = params.get("district") || "전체";
-  const school = params.get("school") || "";
+  const schoolParam = params.get("school") || "";
+  const school = schoolParam ? findUniversityByName(schoolParam)?.name || schoolParam : "";
   const keyword = params.get("q") || "";
   const page = Math.max(1, Number(params.get("page") || "1") || 1);
   const [searchKeyword, setSearchKeyword] = useState(keyword);
@@ -42,7 +46,8 @@ export default function AcademiesPage() {
       const typeLabels = [...insights.preparedTypeCounts, ...insights.strongTypeCounts].map((item) => item.label);
       const typeFallback = [...academy.entranceTypes, ...academy.strongTypes];
       const typeMatch = type === "전체" || [...typeLabels, ...typeFallback].some((academyType) => academyType === type);
-      const schoolLabels = [...insights.schoolTagCounts.map((item) => item.label), ...academy.schoolTags.map((tag) => tag.schoolName)];
+      const schoolLabels = [...insights.schoolTagCounts.map((item) => item.label), ...academy.schoolTags.map((tag) => tag.schoolName)]
+        .map((label) => findUniversityByName(label)?.name || label);
       const schoolMatch = !school || schoolLabels.includes(school) || (school === "기타" && schoolLabels.length === 0);
       return regionMatch && districtMatch && keywordMatch && typeMatch && schoolMatch;
     });
@@ -84,8 +89,9 @@ export default function AcademiesPage() {
 
   function updateSchool(value: string) {
     const next = new URLSearchParams(params);
-    if (!value || value === school) next.delete("school");
-    else next.set("school", value);
+    const normalizedValue = value ? findUniversityByName(value)?.name || value : "";
+    if (!normalizedValue || normalizedValue === school) next.delete("school");
+    else next.set("school", normalizedValue);
     next.delete("page");
     setParams(next);
   }
@@ -122,6 +128,9 @@ export default function AcademiesPage() {
 
   const visibleRegions = showAllRegions ? regions : primaryRegions;
   const visibleTypes = showAllTypes ? types : primaryTypes;
+  const visibleSchools = showAllSchools ? ["기타", ...featuredSchoolOptions, ...universitySeeds.map((university) => university.name)] : featuredSchoolOptions;
+  const uniqueVisibleSchools = Array.from(new Set(visibleSchools));
+  const searchedSchools = schoolKeyword.trim() ? searchUniversities(schoolKeyword, 8) : [];
 
   return (
     <PageLayout>
@@ -153,7 +162,32 @@ export default function AcademiesPage() {
             )}
             <FilterChips label="전형" items={["전체", ...visibleTypes]} value={type} onChange={(value) => updateParam("type", value)} tone="type" />
             {!showAllTypes && <div className="filter-more-row"><span aria-hidden="true" /><button type="button" className="text-button filter-more-button" onClick={() => setShowAllTypes(true)}>전형 더보기</button></div>}
-            <FilterChips label="주요 대비 대학" items={schoolOptions} value={school} onChange={updateSchool} tone="type" />
+            <FilterChips label="주요 대비 대학" items={uniqueVisibleSchools} value={school} onChange={updateSchool} tone="type" />
+            <div className="filter-more-row">
+              <span aria-hidden="true" />
+              <div className="filter-search-column">
+                {!showAllSchools && <button type="button" className="text-button filter-more-button" onClick={() => setShowAllSchools(true)}>대학 더보기</button>}
+                <input
+                  value={schoolKeyword}
+                  onChange={(event) => setSchoolKeyword(event.target.value)}
+                  placeholder="대학명 검색"
+                  aria-label="주요 대비 대학 검색"
+                />
+                {searchedSchools.length > 0 && (
+                  <div className="filter-search-results">
+                    {searchedSchools.map((university) => (
+                      <button type="button" key={university.id} onClick={() => {
+                        updateSchool(university.name);
+                        setSchoolKeyword("");
+                      }}>
+                        {university.shortName}
+                        <span>{university.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
         <div className="list-tools">

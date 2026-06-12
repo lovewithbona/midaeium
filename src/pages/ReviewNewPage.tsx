@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
 import type { Review } from "../data/academies";
+import { findUniversityByName, searchUniversities } from "../data/universities";
 import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { saveStoredReview } from "../utils/storage";
 
@@ -15,7 +16,6 @@ const concernTagOptions = ["과제량이 부담스러웠음", "수업 속도가 
 const cautionTagOptions = ["스스로 질문해야 놓치지 않음", "멘탈 관리가 필요함", "과제 시간을 확보해야 함", "비용/수업 방식을 상담 때 확인 추천", "선생님 스타일 확인 필요"];
 const statuses = ["고2 이하", "고3", "N수생", "대학생", "학부모"];
 const admissionResults = ["", "합격", "불합격"];
-const schoolTagOptions = ["국민대", "건국대", "홍익대", "서울과기대", "이화여대", "숙명여대", "성신여대", "중앙대", "경희대", "한예종", "기타"];
 const MIN_DETAIL_LENGTH = 100;
 
 export default function ReviewNewPage() {
@@ -30,6 +30,8 @@ export default function ReviewNewPage() {
   const [cautionTags, setCautionTags] = useState<string[]>([]);
   const [feedbackTags, setFeedbackTags] = useState<string[]>([]);
   const [reviewSchoolTags, setReviewSchoolTags] = useState<string[]>([]);
+  const [schoolKeyword, setSchoolKeyword] = useState("");
+  const [customSchoolName, setCustomSchoolName] = useState("");
   const [rating, setRating] = useState(0);
   const [form, setForm] = useState({
     newName: "",
@@ -54,6 +56,7 @@ export default function ReviewNewPage() {
   });
   const [formError, setFormError] = useState<{ key: string; message: string } | null>(null);
   const detailLength = form.detail.trim().length;
+  const schoolSearchResults = useMemo(() => searchUniversities(schoolKeyword, 8), [schoolKeyword]);
 
   const filteredAcademies = useMemo(() => {
     const trimmed = keyword.trim();
@@ -75,6 +78,23 @@ export default function ReviewNewPage() {
 
   function toggleListValue(value: string, setter: Dispatch<SetStateAction<string[]>>) {
     setter((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  }
+
+  function addSchoolTag(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const canonicalName = findUniversityByName(trimmed)?.name || trimmed;
+    setReviewSchoolTags((current) => current.includes(canonicalName) ? current : [...current, canonicalName]);
+    setSchoolKeyword("");
+  }
+
+  function removeSchoolTag(value: string) {
+    setReviewSchoolTags((current) => current.filter((item) => item !== value));
+  }
+
+  function addCustomSchoolTag() {
+    addSchoolTag(customSchoolName);
+    setCustomSchoolName("");
   }
 
   function updateVerificationCheck(name: keyof typeof verificationChecks, checked: boolean) {
@@ -281,10 +301,44 @@ export default function ReviewNewPage() {
             </div>
             <div className="review-field-block">
               <span className="field-title">주요 대비 대학</span>
-              <div className="chip-row no-label">
-                {schoolTagOptions.map((school) => (
-                  <button type="button" key={school} className={`chip ${reviewSchoolTags.includes(school) ? "active" : ""}`} onClick={() => toggleListValue(school, setReviewSchoolTags)}>{school}</button>
-                ))}
+              <div className="university-picker">
+                <input
+                  value={schoolKeyword}
+                  onChange={(event) => setSchoolKeyword(event.target.value)}
+                  placeholder="대학명이나 약칭을 검색해 주세요"
+                  aria-label="주요 대비 대학 검색"
+                />
+                <div className="university-result-list">
+                  {schoolSearchResults.map((university) => (
+                    <button
+                      type="button"
+                      key={university.id}
+                      className={reviewSchoolTags.includes(university.name) ? "selected" : ""}
+                      onClick={() => addSchoolTag(university.name)}
+                    >
+                      <strong>{university.shortName}</strong>
+                      <span>{university.name}</span>
+                    </button>
+                  ))}
+                </div>
+                {reviewSchoolTags.length > 0 && (
+                  <div className="selected-university-chips" aria-label="선택된 주요 대비 대학">
+                    {reviewSchoolTags.map((school) => (
+                      <button type="button" key={school} onClick={() => removeSchoolTag(school)}>
+                        {school} ×
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="custom-university-row">
+                  <input
+                    value={customSchoolName}
+                    onChange={(event) => setCustomSchoolName(event.target.value)}
+                    placeholder="기타 대학 직접 입력"
+                    aria-label="기타 대학 직접 입력"
+                  />
+                  <button type="button" className="secondary-button" onClick={addCustomSchoolTag}>추가</button>
+                </div>
               </div>
             </div>
           </details>

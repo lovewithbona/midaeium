@@ -604,6 +604,72 @@ p {
   color: #4b2118;
 }
 
+.university-picker {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.university-result-list,
+.selected-university-chips,
+.filter-search-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.university-result-list button,
+.filter-search-results button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.university-result-list button.selected {
+  border-color: var(--violet);
+  background: rgba(141, 124, 255, 0.12);
+  color: var(--violet);
+}
+
+.university-result-list button span,
+.filter-search-results button span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.selected-university-chips button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(141, 124, 255, 0.38);
+  border-radius: 0;
+  background: rgba(141, 124, 255, 0.1);
+  color: var(--violet);
+  font-weight: 620;
+}
+
+.custom-university-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.filter-search-column {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.filter-search-column input {
+  max-width: 360px;
+}
+
 .academy-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

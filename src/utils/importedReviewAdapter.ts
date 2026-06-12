@@ -1,5 +1,6 @@
 import { academies, type Academy, type Review, type ReviewStatus } from "../data/academies";
 import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/importedReviews";
+import { normalizeUniversityName } from "../data/universities";
 import { getModerationStatusOverride, getReviewAcademyMatchOverride, getReviewDetailPublicOverride } from "./storage";
 
 type MatchResult = {
@@ -52,7 +53,8 @@ function convertImportedReview(review: ImportedFormReview): Review {
     admissionResult: review.admissionResult,
     preparedTypes: review.preparedTypes,
     strongTypes: review.strongTypes,
-    reviewSchoolTags: review.reviewSchoolTags,
+    reviewSchoolTags: normalizeReviewSchoolTags(review.reviewSchoolTags),
+    reviewSchoolTagsRaw: review.reviewSchoolTags,
     schoolTextRaw: review.schoolTextRaw,
     atmosphere: review.atmosphere,
     rating: review.rating,
@@ -80,6 +82,10 @@ function convertImportedReview(review: ImportedFormReview): Review {
     moderationFlags: review.moderationFlags,
     consent: review.consent,
   };
+}
+
+function normalizeReviewSchoolTags(tags: string[]) {
+  return Array.from(new Set(tags.map((tag) => normalizeUniversityName(tag)).filter(Boolean)));
 }
 
 function matchAcademy(review: ImportedFormReview): MatchResult {
