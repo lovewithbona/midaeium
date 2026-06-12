@@ -1,52 +1,185 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
-import ReviewCard from "../components/ReviewCard";
-import { academies, type ReviewStatus } from "../data/academies";
-import type { Review } from "../data/academies";
+import { academies, regions, type Academy, type Review, type ReviewStatus } from "../data/academies";
+import { findUniversityByName, searchUniversities, suggestUniversitiesFromRawText } from "../data/universities";
 import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
-import { clearFakeUser, getFakeUser, saveModerationStatus, saveReviewAcademyMatch, saveReviewDetailPublic } from "../utils/storage";
+import {
+  clearFakeUser,
+  getAdminAcademyDrafts,
+  getFakeUser,
+  saveAdminAcademyDraft,
+  saveModerationStatus,
+  saveReviewAcademyMatch,
+  saveReviewDetailPublic,
+  saveReviewSchoolTags,
+} from "../utils/storage";
 
-const moderationSections: { status: ReviewStatus; title: string; description: string }[] = [
-  { status: "pending", title: "검토 대기", description: "아직 공개 여부를 결정하지 않은 리뷰입니다." },
-  { status: "public", title: "공개 처리", description: "일반 사용자 화면에 노출되는 리뷰입니다." },
-  { status: "held", title: "보류 처리", description: "추가 확인이 필요해서 잠시 보류한 리뷰입니다." },
-  { status: "hidden", title: "제외 처리", description: "일반 화면에서 제외한 리뷰입니다." },
-];
+type AdminFilter = "all" | "pending" | "match" | "school" | "content" | "public" | "held" | "hidden";
+
+const filterLabels: Record<AdminFilter, string> = {
+  all: "전체",
+  pending: "검수 대기",
+  match: "학원 매칭 필요",
+  school: "대학명 정리 필요",
+  content: "내용 검토 필요",
+  public: "공개 완료",
+  held: "보류",
+  hidden: "제외",
+};
+
+const emptyDraft = {
+  name: "",
+  region: "서울",
+  district: "",
+  address: "",
+  officialWebsiteUrl: "",
+  instagramUrl: "",
+  naverBlogUrl: "",
+};
 
 export default function MyPage() {
   const navigate = useNavigate();
   const user = getFakeUser();
-  const [, setModerationTick] = useState(0);
-  const reviewCandidates = getAllReviews({ includePending: true })
-    .sort((a, b) => {
-      const statusOrder = { pending: 0, public: 1, held: 2, hidden: 3, rejected: 3 };
-      return statusOrder[a.status] - statusOrder[b.status] || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  const pendingReviews = getReviewsByStatus(reviewCandidates, "pending");
-  const publicReviews = getReviewsByStatus(reviewCandidates, "public");
-  const heldReviews = getReviewsByStatus(reviewCandidates, "held");
-  const hiddenReviews = reviewCandidates.filter((review) => review.status === "hidden" || review.status === "rejected");
-  const flaggedReviews = reviewCandidates.filter((review) => review.moderationFlags?.length);
+  const [tick, setTick] = useState(0);
+  const [activeFilter, setActiveFilter] = useState<AdminFilter>("pending");
+  const [selectedReviewId, setSelectedReviewId] = useState("");
+  const [academyKeyword, setAcademyKeyword] = useState("");
+  const [schoolKeyword, setSchoolKeyword] = useState("");
+  const [customSchool, setCustomSchool] = useState("");
+  const [selectedSchoolTags, setSelectedSchoolTags] = useState<string[]>([]);
+  const [detailPublicDraft, setDetailPublicDraft] = useState("");
+  const [isAddingAcademy, setIsAddingAcademy] = useState(false);
+  const [academyDraft, setAcademyDraft] = useState(emptyDraft);
+
+  const allAcademies = useMemo(() => [...academies, ...getAdminAcademyDrafts()], [tick]);
+  const reviews = useMemo(() => getAllReviews({ includePending: true }), [tick]);
+  const enrichedReviews = useMemo(() => reviews.map((review) => enrichReview(review, allAcademies)), [reviews, allAcademies]);
+  const filteredReviews = useMemo(() => filterReviews(enrichedReviews, activeFilter), [enrichedReviews, activeFilter]);
+  const selectedReview = filteredReviews.find((review) => review.id === selectedReviewId) || filteredReviews[0] || enrichedReviews[0];
+  const selectedAcademy = selectedReview ? allAcademies.find((academy) => academy.id === selectedReview.academyId) : undefined;
+
+  const summary = useMemo(() => {
+    const hiddenCount = enrichedReviews.filter((review) => review.status === "hidden" || review.status === "rejected").length;
+    return {
+      all: enrichedReviews.length,
+      pending: enrichedReviews.filter((review) => review.status === "pending").length,
+      match: enrichedReviews.filter((review) => review.needsAcademyMatch).length,
+      school: enrichedReviews.filter((review) => review.needsSchoolNormalize).length,
+      content: enrichedReviews.filter((review) => review.needsContentReview).length,
+      public: enrichedReviews.filter((review) => review.status === "public").length,
+      held: enrichedReviews.filter((review) => review.status === "held").length,
+      hidden: hiddenCount,
+    };
+  }, [enrichedReviews]);
+
+  const academyResults = useMemo(() => {
+    const keyword = academyKeyword.trim();
+    if (!keyword) return [];
+    return allAcademies
+      .filter((academy) => [academy.name, academy.location, academy.address, academy.region, academy.district].some((text) => text.includes(keyword)))
+      .slice(0, 8);
+  }, [academyKeyword, allAcademies]);
+
+  const schoolResults = useMemo(() => searchUniversities(schoolKeyword, 8), [schoolKeyword]);
+  const suggestedSchools = useMemo(() => {
+    if (!selectedReview) return [];
+    return suggestUniversitiesFromRawText(`${selectedReview.schoolTextRaw || ""} ${(selectedReview.reviewSchoolTagsRaw || []).join(" ")}`);
+  }, [selectedReview]);
+
+  useEffect(() => {
+    if (!selectedReview) return;
+    setSelectedReviewId(selectedReview.id);
+    setSelectedSchoolTags(selectedReview.reviewSchoolTags || []);
+    setDetailPublicDraft(selectedReview.detailPublic || "");
+    setAcademyKeyword("");
+    setSchoolKeyword("");
+    setCustomSchool("");
+    setIsAddingAcademy(false);
+    setAcademyDraft(emptyDraft);
+  }, [selectedReview?.id]);
 
   function handleLogout() {
     clearFakeUser();
     navigate("/login");
   }
 
+  function refresh() {
+    setTick((value) => value + 1);
+  }
+
   function updateReviewStatus(reviewId: string, status: ReviewStatus) {
     saveModerationStatus(reviewId, status);
-    setModerationTick((value) => value + 1);
+    refresh();
   }
 
   function updateReviewAcademyMatch(reviewId: string, academyId: string) {
     saveReviewAcademyMatch(reviewId, academyId);
-    setModerationTick((value) => value + 1);
+    setAcademyKeyword("");
+    refresh();
   }
 
-  function updateReviewDetailPublic(reviewId: string, detailPublic: string) {
-    saveReviewDetailPublic(reviewId, detailPublic);
-    setModerationTick((value) => value + 1);
+  function saveSchoolTags(reviewId: string, tags = selectedSchoolTags) {
+    saveReviewSchoolTags(reviewId, tags);
+    refresh();
+  }
+
+  function addSchoolTag(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const canonicalName = findUniversityByName(trimmed)?.name || trimmed;
+    setSelectedSchoolTags((current) => current.includes(canonicalName) ? current : [...current, canonicalName]);
+    setSchoolKeyword("");
+    setCustomSchool("");
+  }
+
+  function removeSchoolTag(value: string) {
+    setSelectedSchoolTags((current) => current.filter((item) => item !== value));
+  }
+
+  function saveDetailPublic(reviewId: string) {
+    saveReviewDetailPublic(reviewId, detailPublicDraft);
+    refresh();
+  }
+
+  function createAcademyDraft(reviewId: string) {
+    const name = academyDraft.name.trim();
+    const district = academyDraft.district.trim();
+    const address = academyDraft.address.trim();
+    if (!name || !district || !address) return;
+
+    const academy: Academy = {
+      id: `custom-academy-${Date.now()}`,
+      name,
+      region: academyDraft.region,
+      district,
+      location: `${academyDraft.region} ${district}`,
+      address,
+      homepageUrl: academyDraft.officialWebsiteUrl.trim() || null,
+      mapSearchQuery: `${name} ${address}`,
+      sourceUrl: null,
+      verifiedStatus: "확인 필요",
+      entranceTypes: [],
+      strongTypes: [],
+      typeSourceUrl: null,
+      typeConfidence: "확인 필요",
+      typeMemo: "운영자 검수 화면에서 임시 추가된 학원입니다.",
+      schoolTags: [],
+      officialWebsiteUrl: academyDraft.officialWebsiteUrl.trim() || null,
+      instagramUrl: academyDraft.instagramUrl.trim() || null,
+      naverBlogUrl: academyDraft.naverBlogUrl.trim() || null,
+      channelConfidence: "확인 필요",
+      channelMemo: "운영자 검수 화면에서 임시 추가된 채널 정보입니다.",
+      channelSourceUrls: [
+        academyDraft.officialWebsiteUrl,
+        academyDraft.instagramUrl,
+        academyDraft.naverBlogUrl,
+      ].filter(Boolean),
+    };
+
+    saveAdminAcademyDraft(academy);
+    saveReviewAcademyMatch(reviewId, academy.id);
+    refresh();
   }
 
   if (!user) {
@@ -54,7 +187,7 @@ export default function MyPage() {
       <PageLayout>
         <section className="empty-state">
           <h1>로그인이 필요합니다.</h1>
-          <p>관리자 계정으로 로그인하면 마이페이지 예시를 확인할 수 있습니다.</p>
+          <p>관리자 계정으로 로그인하면 검수 페이지를 확인할 수 있습니다.</p>
           <Link className="primary-button" to="/login">로그인하기</Link>
         </section>
       </PageLayout>
@@ -65,207 +198,227 @@ export default function MyPage() {
     <PageLayout className="mypage-page">
       <section className="mypage-hero">
         <div>
-          <p className="eyebrow">관리자 마이페이지</p>
-          <h1>리뷰 검수 현황</h1>
-          <p>리뷰 상태를 나눠서 확인하고 공개 여부를 관리합니다.</p>
+          <p className="eyebrow">관리자</p>
+          <h1>운영자 검수 페이지</h1>
+          <p>구글폼으로 수집된 리뷰를 확인하고, 학원 매칭과 주요 대비 대학 정보를 사이트 기준에 맞게 정리합니다.</p>
         </div>
         <button className="secondary-button" type="button" onClick={handleLogout}>로그아웃</button>
       </section>
 
       <section className="mypage-summary">
-        <div>
-          <span>로그인 계정</span>
-          <strong>{user}</strong>
-        </div>
-        <div>
-          <span>검수 대기 리뷰</span>
-          <strong>{pendingReviews.length}개</strong>
-        </div>
-        <div>
-          <span>공개 리뷰</span>
-          <strong>{publicReviews.length}개</strong>
-        </div>
-        <div>
-          <span>보류 리뷰</span>
-          <strong>{heldReviews.length}개</strong>
-        </div>
-        <div>
-          <span>제외 리뷰</span>
-          <strong>{hiddenReviews.length}개</strong>
-        </div>
-        <div>
-          <span>주의 플래그</span>
-          <strong>{flaggedReviews.length}개</strong>
-        </div>
-        <div>
-          <span>학원 후보</span>
-          <strong>{academies.length}개</strong>
-        </div>
+        <SummaryItem label="전체 리뷰" value={summary.all} />
+        <SummaryItem label="검수 대기" value={summary.pending} />
+        <SummaryItem label="학원 매칭 필요" value={summary.match} />
+        <SummaryItem label="대학명 정리 필요" value={summary.school} />
+        <SummaryItem label="공개 완료" value={summary.public} />
+        <SummaryItem label="보류/제외" value={summary.held + summary.hidden} />
       </section>
 
-      <section className="mypage-panel">
-        <div className="section-title-row">
-          <div>
-            <h2>리뷰 검수함</h2>
-            <p className="muted">검토 대기, 공개, 보류, 제외 상태를 따로 확인할 수 있습니다.</p>
-          </div>
-          <Link className="secondary-button" to="/review/new">리뷰 등록 테스트</Link>
-        </div>
-        {reviewCandidates.length > 0 ? (
-          <div className="admin-section-list">
-            {moderationSections.map((section) => (
-              <AdminModerationSection
-                key={section.status}
-                status={section.status}
-                title={section.title}
-                description={section.description}
-                reviews={section.status === "hidden" ? hiddenReviews : getReviewsByStatus(reviewCandidates, section.status)}
-                onChangeStatus={updateReviewStatus}
-                onChangeAcademyMatch={updateReviewAcademyMatch}
-                onSaveDetailPublic={updateReviewDetailPublic}
-              />
+      <section className="admin-workspace">
+        <aside className="admin-sidebar">
+          <div className="admin-filter-list" aria-label="검수 목록 필터">
+            {(Object.keys(filterLabels) as AdminFilter[]).map((filter) => (
+              <button
+                type="button"
+                key={filter}
+                className={activeFilter === filter ? "active" : ""}
+                onClick={() => {
+                  setActiveFilter(filter);
+                  setSelectedReviewId("");
+                }}
+              >
+                <span>{filterLabels[filter]}</span>
+                <b>{summary[filter]}</b>
+              </button>
             ))}
           </div>
-        ) : (
-          <div className="empty-state compact-empty">
-            <h2>현재 등록된 리뷰가 없습니다.</h2>
-            <p>기존 리뷰 데이터는 삭제되었습니다. 새 리뷰가 들어오면 상태별로 이곳에 표시됩니다.</p>
-            <Link className="primary-button" to="/review/new">리뷰 등록하기</Link>
+          <div className="admin-review-list compact">
+            {filteredReviews.length > 0 ? filteredReviews.map((review) => (
+              <button
+                type="button"
+                key={review.id}
+                className={selectedReview?.id === review.id ? "active" : ""}
+                onClick={() => setSelectedReviewId(review.id)}
+              >
+                <strong>{review.academyNameRaw || review.academyName || "학원명 없음"}</strong>
+                <span>{review.writerStatus || "작성자 정보 없음"} · {review.rating || 0}/5</span>
+                <small>{getStatusLabel(review.status)}{review.needsAcademyMatch ? " · 매칭 필요" : ""}</small>
+              </button>
+            )) : (
+              <p className="admin-empty-text">이 목록에 해당하는 리뷰가 없습니다.</p>
+            )}
           </div>
-        )}
+        </aside>
+
+        <div className="admin-detail-panel">
+          {selectedReview ? (
+            <>
+              <div className="admin-detail-head">
+                <div>
+                  <span className={`status-badge status-${selectedReview.status}`}>{getStatusLabel(selectedReview.status)}</span>
+                  <h2>{selectedReview.academyNameRaw || selectedReview.academyName || "학원명 없음"}</h2>
+                  <p>{selectedReview.source === "google-form" ? `구글폼 ${selectedReview.sourceRow}행` : "사이트 등록 리뷰"}</p>
+                </div>
+                {selectedReview.moderationFlags && selectedReview.moderationFlags.length > 0 && (
+                  <div className="moderation-flags">
+                    {selectedReview.moderationFlags.map((flag) => <span key={flag}>{flag}</span>)}
+                  </div>
+                )}
+              </div>
+
+              <section className="admin-editor-section">
+                <h3>매칭 학원</h3>
+                <p className="admin-raw-line">원문 학원명: <b>{selectedReview.academyNameRaw || selectedReview.academyName || "없음"}</b></p>
+                <p className="admin-raw-line">현재 매칭: <b>{selectedAcademy?.name || "확인 필요"}</b></p>
+                <input value={academyKeyword} onChange={(event) => setAcademyKeyword(event.target.value)} placeholder="학원명을 검색해 매칭하세요." />
+                {academyResults.length > 0 && (
+                  <div className="admin-search-results">
+                    {academyResults.map((academy) => (
+                      <button type="button" key={academy.id} onClick={() => updateReviewAcademyMatch(selectedReview.id, academy.id)}>
+                        <strong>{academy.name}</strong>
+                        <span>{academy.region} {academy.district} · {academy.address}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button type="button" className="text-button" onClick={() => setIsAddingAcademy((value) => !value)}>새 학원 추가하기</button>
+                {isAddingAcademy && (
+                  <div className="admin-academy-draft-form">
+                    <label>학원명<input value={academyDraft.name} onChange={(event) => setAcademyDraft({ ...academyDraft, name: event.target.value })} /></label>
+                    <label>지역<select value={academyDraft.region} onChange={(event) => setAcademyDraft({ ...academyDraft, region: event.target.value })}>{regions.filter((region) => region !== "전체").map((region) => <option key={region}>{region}</option>)}</select></label>
+                    <label>세부 지역<input value={academyDraft.district} onChange={(event) => setAcademyDraft({ ...academyDraft, district: event.target.value })} placeholder="예: 강남구" /></label>
+                    <label className="wide">주소<input value={academyDraft.address} onChange={(event) => setAcademyDraft({ ...academyDraft, address: event.target.value })} /></label>
+                    <label>공식 홈페이지 URL<input value={academyDraft.officialWebsiteUrl} onChange={(event) => setAcademyDraft({ ...academyDraft, officialWebsiteUrl: event.target.value })} /></label>
+                    <label>인스타그램 URL<input value={academyDraft.instagramUrl} onChange={(event) => setAcademyDraft({ ...academyDraft, instagramUrl: event.target.value })} /></label>
+                    <label>네이버 블로그 URL<input value={academyDraft.naverBlogUrl} onChange={(event) => setAcademyDraft({ ...academyDraft, naverBlogUrl: event.target.value })} /></label>
+                    <button type="button" className="secondary-button wide" onClick={() => createAcademyDraft(selectedReview.id)}>새 학원으로 등록하고 매칭하기</button>
+                  </div>
+                )}
+              </section>
+
+              <section className="admin-editor-section">
+                <h3>주요 대비 대학</h3>
+                <p className="admin-raw-line">원문 강점 학교: <b>{selectedReview.schoolTextRaw || selectedReview.reviewSchoolTagsRaw?.join(", ") || "없음"}</b></p>
+                {suggestedSchools.length > 0 && (
+                  <div className="admin-suggestion-row">
+                    <span>추천 대학</span>
+                    {suggestedSchools.map((university) => (
+                      <button type="button" key={university.id} onClick={() => addSchoolTag(university.name)}>{university.name}</button>
+                    ))}
+                  </div>
+                )}
+                <input value={schoolKeyword} onChange={(event) => setSchoolKeyword(event.target.value)} placeholder="대학명이나 약칭을 검색해 주세요" />
+                {schoolResults.length > 0 && (
+                  <div className="admin-search-results small">
+                    {schoolResults.map((university) => (
+                      <button type="button" key={university.id} onClick={() => addSchoolTag(university.name)}>
+                        <strong>{university.shortName}</strong>
+                        <span>{university.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="selected-university-chips">
+                  {selectedSchoolTags.map((school) => (
+                    <button type="button" key={school} onClick={() => removeSchoolTag(school)}>{school} ×</button>
+                  ))}
+                </div>
+                <div className="custom-university-row">
+                  <input value={customSchool} onChange={(event) => setCustomSchool(event.target.value)} placeholder="기타 직접 입력" />
+                  <button type="button" className="secondary-button" onClick={() => addSchoolTag(customSchool)}>추가</button>
+                </div>
+                <button type="button" className="secondary-button" onClick={() => saveSchoolTags(selectedReview.id)}>주요 대비 대학 저장</button>
+              </section>
+
+              <section className="admin-editor-section">
+                <h3>작성자/수강 정보</h3>
+                <div className="admin-review-facts">
+                  <span>작성자 상태: {selectedReview.writerStatus || "없음"}</span>
+                  <span>만족도: {selectedReview.rating || 0}/5</span>
+                  {selectedReview.attendedYear && <span>다닌 시기: {selectedReview.attendedYear}</span>}
+                  {selectedReview.attendedPeriod && <span>다닌 기간: {selectedReview.attendedPeriod}</span>}
+                  {selectedReview.admissionResult && <span>합격 여부: {selectedReview.admissionResult}</span>}
+                  {selectedReview.atmosphere && <span>분위기: {selectedReview.atmosphere}</span>}
+                  {selectedReview.homeworkLoad && <span>과제량: {selectedReview.homeworkLoad}</span>}
+                  {selectedReview.classLevel && <span>난이도: {selectedReview.classLevel}</span>}
+                </div>
+              </section>
+
+              <section className="admin-editor-section">
+                <h3>태그</h3>
+                <div className="admin-review-tags">
+                  {getAllReviewTags(selectedReview).map((tag) => <span key={tag}>{tag}</span>)}
+                </div>
+              </section>
+
+              <section className="admin-editor-section">
+                <h3>후기 원문</h3>
+                <p className="admin-review-body">{getAdminReviewBody(selectedReview) || "원문이 없습니다."}</p>
+                <label>
+                  공개용 원문 수정
+                  <textarea value={detailPublicDraft} onChange={(event) => setDetailPublicDraft(event.target.value)} placeholder="비워두면 원문을 그대로 사용합니다." />
+                </label>
+                <div className="moderation-actions">
+                  <button type="button" className="secondary-button" onClick={() => saveDetailPublic(selectedReview.id)}>수정본 저장</button>
+                  <button type="button" className="secondary-button" onClick={() => {
+                    setDetailPublicDraft("");
+                    saveReviewDetailPublic(selectedReview.id, "");
+                    refresh();
+                  }}>수정본 비우기</button>
+                </div>
+              </section>
+
+              <div className="moderation-actions sticky-actions">
+                <button type="button" className="primary-button" onClick={() => updateReviewStatus(selectedReview.id, "public")}>공개 처리</button>
+                <button type="button" className="secondary-button" onClick={() => updateReviewStatus(selectedReview.id, "pending")}>검수 대기</button>
+                <button type="button" className="secondary-button" onClick={() => updateReviewStatus(selectedReview.id, "held")}>보류 처리</button>
+                <button type="button" className="secondary-button danger-button" onClick={() => updateReviewStatus(selectedReview.id, "hidden")}>제외 처리</button>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state compact-empty">
+              <h2>검수할 리뷰가 없습니다.</h2>
+              <p>새 리뷰가 들어오면 이곳에서 학원 매칭과 대학명을 정리할 수 있습니다.</p>
+            </div>
+          )}
+        </div>
       </section>
     </PageLayout>
   );
 }
 
-function AdminModerationSection({ status, title, description, reviews, onChangeStatus, onChangeAcademyMatch, onSaveDetailPublic }: {
-  status: ReviewStatus;
-  title: string;
-  description: string;
-  reviews: Review[];
-  onChangeStatus: (reviewId: string, status: ReviewStatus) => void;
-  onChangeAcademyMatch: (reviewId: string, academyId: string) => void;
-  onSaveDetailPublic: (reviewId: string, detailPublic: string) => void;
-}) {
+function SummaryItem({ label, value }: { label: string; value: number }) {
   return (
-    <section className="admin-status-section">
-      <div className="admin-status-head">
-        <div>
-          <h3>{title}</h3>
-          <p>{description}</p>
-        </div>
-        <strong>{reviews.length}개</strong>
-      </div>
-      {reviews.length > 0 ? (
-        <div className="admin-review-list">
-          {reviews.map((review) => (
-            <AdminReviewItem
-              key={review.id}
-              review={review}
-              status={status}
-              onChangeStatus={onChangeStatus}
-              onChangeAcademyMatch={onChangeAcademyMatch}
-              onSaveDetailPublic={onSaveDetailPublic}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className="admin-empty-text">해당 상태의 리뷰가 없습니다.</p>
-      )}
-    </section>
+    <div>
+      <span>{label}</span>
+      <strong>{value}개</strong>
+    </div>
   );
 }
 
-function AdminReviewItem({ review, status, onChangeStatus, onChangeAcademyMatch, onSaveDetailPublic }: {
-  review: Review;
-  status: ReviewStatus;
-  onChangeStatus: (reviewId: string, status: ReviewStatus) => void;
-  onChangeAcademyMatch: (reviewId: string, academyId: string) => void;
-  onSaveDetailPublic: (reviewId: string, detailPublic: string) => void;
-}) {
-  const [detailPublicDraft, setDetailPublicDraft] = useState(review.detailPublic || "");
-  const matchedAcademyId = review.academyId.startsWith("unmatched-") ? "" : review.academyId;
+function enrichReview(review: Review, allAcademies: Academy[]) {
+  const needsAcademyMatch = review.academyId.startsWith("unmatched-") || !allAcademies.some((academy) => academy.id === review.academyId);
+  const suggestedSchools = suggestUniversitiesFromRawText(`${review.schoolTextRaw || ""} ${(review.reviewSchoolTagsRaw || []).join(" ")}`);
+  const normalizedTags = (review.reviewSchoolTagsRaw || []).map((tag) => findUniversityByName(tag)?.name).filter(Boolean);
+  const needsSchoolNormalize = Boolean((review.schoolTextRaw || review.reviewSchoolTagsRaw?.length) && suggestedSchools.length > 0 && (review.reviewSchoolTags || []).length === 0)
+    || normalizedTags.some((tag) => tag && !(review.reviewSchoolTags || []).includes(tag));
+  const needsContentReview = Boolean(review.moderationFlags?.length);
 
-  return (
-    <article className={`admin-review-item ${review.moderationFlags?.length ? "flagged" : ""}`}>
-      <div className="admin-review-meta">
-        <div>
-          <strong>{review.academyNameRaw || review.academyName}</strong>
-          <p className="muted">
-            {review.source === "google-form" ? `구글폼 ${review.sourceRow}행` : "사이트 등록 리뷰"} · 상태 {getStatusLabel(review.status)}
-          </p>
-          <p className="muted">{getMatchedAcademyLabel(review.academyId)}</p>
-        </div>
-        {review.moderationFlags && review.moderationFlags.length > 0 && (
-          <div className="moderation-flags" aria-label="검수 주의 플래그">
-            {review.moderationFlags.map((flag) => <span key={flag}>{flag}</span>)}
-          </div>
-        )}
-      </div>
-      <div className="admin-edit-grid">
-        <label>
-          매칭 학원 수정
-          <select value={matchedAcademyId} onChange={(event) => onChangeAcademyMatch(review.id, event.target.value)}>
-            <option value="">매칭 학원 선택</option>
-            {academies.map((academy) => (
-              <option value={academy.id} key={academy.id}>{academy.name} · {academy.region} {academy.district}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          공개용 후기 수정
-          <textarea value={detailPublicDraft} onChange={(event) => setDetailPublicDraft(event.target.value)} placeholder="비워두면 원문을 그대로 사용합니다." />
-        </label>
-        <div className="moderation-actions admin-edit-actions">
-          <button type="button" className="secondary-button" onClick={() => onSaveDetailPublic(review.id, detailPublicDraft)}>공개용 후기 저장</button>
-          <button type="button" className="secondary-button" onClick={() => {
-            setDetailPublicDraft("");
-            onSaveDetailPublic(review.id, "");
-          }}>수정본 비우기</button>
-        </div>
-      </div>
-      <div className="admin-review-facts">
-        <span>학원명: {review.academyName}</span>
-        {review.writerStatus && <span>작성자: {review.writerStatus}</span>}
-        {review.attendedYear && <span>다닌 년도: {review.attendedYear}</span>}
-        {review.attendedPeriod && <span>다닌 기간: {review.attendedPeriod}</span>}
-        {review.admissionResult && <span>합격 여부: {review.admissionResult}</span>}
-        {review.rating > 0 && <span>만족도: {review.rating}/5</span>}
-        {review.atmosphere && <span>분위기: {review.atmosphere}</span>}
-        {review.homeworkLoad && <span>과제량: {review.homeworkLoad}</span>}
-        {review.classLevel && <span>난이도: {review.classLevel}</span>}
-      </div>
-      {review.reviewSchoolTags && review.reviewSchoolTags.length > 0 && (
-        <div className="admin-review-tags">
-          <b>주요 대비 대학</b>
-          <p>{review.reviewSchoolTags.join(", ")}</p>
-        </div>
-      )}
-      {review.schoolTextRaw && (
-        <div className="raw-note">
-          <b>강점 학교 원문</b>
-          <p>{review.schoolTextRaw}</p>
-        </div>
-      )}
-      <div className="raw-note">
-        <b>자세한 후기 원문</b>
-        <p>{review.detailOriginal || getReviewDisplayDetail(review) || "원문이 없습니다."}</p>
-      </div>
-      {review.detailPublic && (
-        <div className="raw-note public-note">
-          <b>공개용 수정본</b>
-          <p>{review.detailPublic}</p>
-        </div>
-      )}
-      <ReviewCard review={review} />
-      <div className="moderation-actions">
-        <button type="button" className="primary-button" onClick={() => onChangeStatus(review.id, "public")} disabled={status === "public"}>공개 처리</button>
-        <button type="button" className="secondary-button" onClick={() => onChangeStatus(review.id, "held")} disabled={status === "held"}>보류 처리</button>
-        <button type="button" className="secondary-button" onClick={() => onChangeStatus(review.id, "pending")} disabled={status === "pending"}>검토 대기</button>
-        <button type="button" className="secondary-button danger-button" onClick={() => onChangeStatus(review.id, "hidden")} disabled={status === "hidden"}>제외 처리</button>
-      </div>
-    </article>
-  );
+  return {
+    ...review,
+    needsAcademyMatch,
+    needsSchoolNormalize,
+    needsContentReview,
+  };
+}
+
+function filterReviews<T extends Review & { needsAcademyMatch: boolean; needsSchoolNormalize: boolean; needsContentReview: boolean }>(reviews: T[], filter: AdminFilter) {
+  if (filter === "all") return reviews;
+  if (filter === "match") return reviews.filter((review) => review.needsAcademyMatch);
+  if (filter === "school") return reviews.filter((review) => review.needsSchoolNormalize);
+  if (filter === "content") return reviews.filter((review) => review.needsContentReview);
+  if (filter === "hidden") return reviews.filter((review) => review.status === "hidden" || review.status === "rejected");
+  return reviews.filter((review) => review.status === filter);
 }
 
 function getStatusLabel(status: ReviewStatus) {
@@ -275,12 +428,16 @@ function getStatusLabel(status: ReviewStatus) {
   return "검수 대기";
 }
 
-function getReviewsByStatus(reviews: Review[], status: ReviewStatus) {
-  return reviews.filter((review) => review.status === status);
+function getAllReviewTags(review: Review) {
+  return Array.from(new Set([
+    ...(review.feedbackTags || []),
+    ...(review.goodTags || []),
+    ...(review.concernTags || []),
+    ...(review.cautionTags || []),
+    ...(review.teachingStyleTags || []),
+  ]));
 }
 
-function getMatchedAcademyLabel(academyId: string) {
-  if (academyId.startsWith("unmatched-")) return "매칭 학원: 확인 필요";
-  const academy = academies.find((item) => item.id === academyId);
-  return academy ? `매칭 학원: ${academy.name}` : "매칭 학원: 확인 필요";
+function getAdminReviewBody(review: Review) {
+  return review.detailPublic || review.detailOriginal || getReviewDisplayDetail(review) || review.detail || "";
 }

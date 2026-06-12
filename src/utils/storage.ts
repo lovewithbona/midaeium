@@ -1,4 +1,4 @@
-import type { Review, ReviewStatus } from "../data/academies";
+import type { Academy, Review, ReviewStatus } from "../data/academies";
 
 const REVIEWS_KEY = "midaeieum_pending_reviews";
 const REVIEW_LIKES_KEY = "midaeieum_review_likes";
@@ -6,6 +6,8 @@ const REVIEW_REACTIONS_KEY = "midaeieum_review_reactions";
 const REVIEW_MODERATION_KEY = "midaeieum_review_moderation_status";
 const REVIEW_ACADEMY_MATCH_KEY = "midaeieum_review_academy_match_overrides";
 const REVIEW_DETAIL_PUBLIC_KEY = "midaeieum_review_detail_public_overrides";
+const REVIEW_SCHOOL_TAGS_KEY = "midaeieum_review_school_tag_overrides";
+const ADMIN_ACADEMY_DRAFTS_KEY = "midaeieum_admin_academy_drafts";
 const REVIEW_RESET_VERSION_KEY = "midaeieum_review_reset_version";
 const REVIEW_RESET_VERSION = "2026-06-13-clear-all-reviews";
 const USER_KEY = "midaeieum_fake_user";
@@ -24,6 +26,7 @@ export function resetReviewStorageIfNeeded() {
   localStorage.removeItem(REVIEW_MODERATION_KEY);
   localStorage.removeItem(REVIEW_ACADEMY_MATCH_KEY);
   localStorage.removeItem(REVIEW_DETAIL_PUBLIC_KEY);
+  localStorage.removeItem(REVIEW_SCHOOL_TAGS_KEY);
   localStorage.setItem(REVIEW_RESET_VERSION_KEY, REVIEW_RESET_VERSION);
 }
 
@@ -150,6 +153,41 @@ export function saveReviewDetailPublic(reviewId: string, detailPublic: string) {
   if (trimmed) next[reviewId] = detailPublic;
   else delete next[reviewId];
   localStorage.setItem(REVIEW_DETAIL_PUBLIC_KEY, JSON.stringify(next));
+}
+
+export function getReviewSchoolTagsMap(): Record<string, string[]> {
+  try {
+    return JSON.parse(localStorage.getItem(REVIEW_SCHOOL_TAGS_KEY) || "{}") as Record<string, string[]>;
+  } catch {
+    return {};
+  }
+}
+
+export function getReviewSchoolTagsOverride(reviewId: string) {
+  return getReviewSchoolTagsMap()[reviewId];
+}
+
+export function saveReviewSchoolTags(reviewId: string, schoolTags: string[]) {
+  const schoolTagMap = getReviewSchoolTagsMap();
+  const next = { ...schoolTagMap };
+  if (schoolTags.length > 0) next[reviewId] = schoolTags;
+  else delete next[reviewId];
+  localStorage.setItem(REVIEW_SCHOOL_TAGS_KEY, JSON.stringify(next));
+}
+
+export function getAdminAcademyDrafts(): Academy[] {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_ACADEMY_DRAFTS_KEY) || "[]") as Academy[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveAdminAcademyDraft(academy: Academy) {
+  const drafts = getAdminAcademyDrafts();
+  const next = [academy, ...drafts.filter((item) => item.id !== academy.id)];
+  localStorage.setItem(ADMIN_ACADEMY_DRAFTS_KEY, JSON.stringify(next));
+  return academy;
 }
 
 export function getFakeUser() {

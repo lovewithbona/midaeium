@@ -1,7 +1,7 @@
 import { academies, type Academy, type Review, type ReviewStatus } from "../data/academies";
 import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/importedReviews";
 import { normalizeUniversityName } from "../data/universities";
-import { getModerationStatusOverride, getReviewAcademyMatchOverride, getReviewDetailPublicOverride } from "./storage";
+import { getAdminAcademyDrafts, getModerationStatusOverride, getReviewAcademyMatchOverride, getReviewDetailPublicOverride, getReviewSchoolTagsOverride } from "./storage";
 
 type MatchResult = {
   academyId: string;
@@ -41,6 +41,7 @@ function convertImportedReview(review: ImportedFormReview): Review {
   const match = matchAcademy(review);
   const status = getModerationStatusOverride(review.id) || review.status;
   const detailPublic = getReviewDetailPublicOverride(review.id) || review.detailPublic;
+  const schoolTagOverride = getReviewSchoolTagsOverride(review.id);
 
   return {
     id: review.id,
@@ -53,7 +54,7 @@ function convertImportedReview(review: ImportedFormReview): Review {
     admissionResult: review.admissionResult,
     preparedTypes: review.preparedTypes,
     strongTypes: review.strongTypes,
-    reviewSchoolTags: normalizeReviewSchoolTags(review.reviewSchoolTags),
+    reviewSchoolTags: schoolTagOverride || normalizeReviewSchoolTags(review.reviewSchoolTags),
     reviewSchoolTagsRaw: review.reviewSchoolTags,
     schoolTextRaw: review.schoolTextRaw,
     atmosphere: review.atmosphere,
@@ -89,8 +90,9 @@ function normalizeReviewSchoolTags(tags: string[]) {
 }
 
 function matchAcademy(review: ImportedFormReview): MatchResult {
+  const allAcademies = getAllAcademyCandidates();
   const overrideAcademyId = getReviewAcademyMatchOverride(review.id);
-  if (overrideAcademyId && academies.some((academy) => academy.id === overrideAcademyId)) {
+  if (overrideAcademyId && allAcademies.some((academy) => academy.id === overrideAcademyId)) {
     return { academyId: overrideAcademyId, confidence: "alias" };
   }
 
@@ -98,21 +100,25 @@ function matchAcademy(review: ImportedFormReview): MatchResult {
   const nameKey = normalizeName(review.academyName);
   const aliasId = academyAliases[rawKey] || academyAliases[nameKey];
 
-  if (aliasId && academies.some((academy) => academy.id === aliasId)) {
+  if (aliasId && allAcademies.some((academy) => academy.id === aliasId)) {
     return { academyId: aliasId, confidence: "alias" };
   }
 
-  const exact = academies.find((academy) => {
+  const exact = allAcademies.find((academy) => {
     const academyKey = normalizeName(academy.name);
     return academyKey === nameKey || academyKey === rawKey;
   });
 
   if (exact) return { academyId: exact.id, confidence: "exact" };
 
-  const fuzzy = academies.find((academy) => isFuzzyMatch(review, academy));
+  const fuzzy = allAcademies.find((academy) => isFuzzyMatch(review, academy));
   if (fuzzy) return { academyId: fuzzy.id, confidence: "fuzzy" };
 
   return { academyId: `unmatched-${review.id}`, confidence: "unmatched" };
+}
+
+function getAllAcademyCandidates() {
+  return [...academies, ...getAdminAcademyDrafts()];
 }
 
 function isFuzzyMatch(review: ImportedFormReview, academy: Academy) {
