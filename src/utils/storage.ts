@@ -4,6 +4,9 @@ const REVIEWS_KEY = "midaeieum_pending_reviews";
 const REVIEW_LIKES_KEY = "midaeieum_review_likes";
 const USER_KEY = "midaeieum_fake_user";
 
+export const DEMO_ADMIN_EMAIL = "admin@midaeium.kr";
+export const DEMO_ADMIN_PASSWORD = "midaeium2026";
+
 export function getStoredReviews(): Review[] {
   try {
     return JSON.parse(localStorage.getItem(REVIEWS_KEY) || "[]") as Review[];
@@ -43,4 +46,8 @@ export function getFakeUser() {
 
 export function saveFakeUser(email: string) {
   localStorage.setItem(USER_KEY, email);
+}
+
+export function clearFakeUser() {
+  localStorage.removeItem(USER_KEY);
 }

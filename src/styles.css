@@ -1331,6 +1331,94 @@ input::placeholder {
   margin-top: 24px;
 }
 
+.demo-account-box {
+  display: grid;
+  gap: 6px;
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--soft);
+}
+
+.demo-account-box strong {
+  color: var(--text);
+}
+
+.demo-account-box span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.form-error {
+  margin: 0;
+  color: #c94f3d;
+  font-weight: 620;
+}
+
+.mypage-page {
+  display: grid;
+  gap: 28px;
+}
+
+.mypage-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.mypage-hero p {
+  max-width: 680px;
+  color: var(--muted);
+}
+
+.mypage-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mypage-summary div,
+.mypage-panel {
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.mypage-summary div {
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+}
+
+.mypage-summary span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.mypage-summary strong {
+  font-size: 22px;
+}
+
+.mypage-panel {
+  padding: 26px;
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.section-title-row h2,
+.section-title-row p {
+  margin-bottom: 0;
+}
+
+.compact-empty {
+  padding: 34px 22px;
+}
+
 .guide-page {
   width: min(100%, 1120px);
   color: var(--text);
@@ -1671,6 +1759,7 @@ input::placeholder {
   .home-entry-grid,
   .sidebar,
   .form-grid,
+  .mypage-summary,
   .contact-method-grid,
   .review-disclosure-box,
   .result-options,
@@ -1764,6 +1853,8 @@ input::placeholder {
   }
 
   .detail-hero,
+  .mypage-hero,
+  .section-title-row,
   .list-tools {
     align-items: flex-start;
     flex-direction: column;

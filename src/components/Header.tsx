@@ -14,7 +14,7 @@ export default function Header() {
         <NavLink to="/guide">입시 가이드</NavLink>
         <NavLink to="/review/new">리뷰 등록</NavLink>
         <NavLink to="/about">미대이음이란?</NavLink>
-        <NavLink to="/login" className="login-link">
+        <NavLink to={user ? "/mypage" : "/login"} className="login-link">
           {user ? "마이페이지" : "로그인"}
         </NavLink>
       </nav>
