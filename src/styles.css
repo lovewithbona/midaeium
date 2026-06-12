@@ -1123,6 +1123,79 @@ input::placeholder {
   margin-top: 22px;
 }
 
+.verification-intro {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 24px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--soft);
+}
+
+.verification-intro p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.contact-method-grid {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.verification-check-section {
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+.verification-checks {
+  display: grid;
+  gap: 12px;
+}
+
+.verification-checks label {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-weight: 560;
+  line-height: 1.6;
+}
+
+.verification-checks input {
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--point);
+}
+
+.review-disclosure-box {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.review-disclosure-box div {
+  display: grid;
+  gap: 6px;
+}
+
+.review-disclosure-box strong {
+  color: var(--text);
+}
+
+.review-disclosure-box p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .wide {
   grid-column: 1 / -1;
 }
@@ -1598,6 +1671,8 @@ input::placeholder {
   .home-entry-grid,
   .sidebar,
   .form-grid,
+  .contact-method-grid,
+  .review-disclosure-box,
   .result-options,
   .feature-grid,
   .choice-toolbar,

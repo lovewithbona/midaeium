@@ -2723,8 +2723,17 @@ export type Review = {
   cautionTags?: string[];
   summary?: string;
   detail?: string;
+  contactMethod?: string;
   contact?: string;
   attendedYear?: string;
+  experienceType?: string;
+  admissionResult?: string;
+  attendedPeriod?: string;
+  verificationChecks?: {
+    notStaff: boolean;
+    directExperience: boolean;
+    falseReviewNotice: boolean;
+  };
   likes?: number;
   pros: string;
   cons: string;

@@ -10,9 +10,11 @@ const feedbackStyles = ["꼼꼼하게 설명함", "빠르게 핵심만 짚어줌
 const homeworkLoads = ["없어요", "적은 편이에요", "적당해요", "많은 편이에요", "매우 많아요"];
 const classLevels = ["입문자도 가능해요", "기본기가 있으면 좋아요", "어느 정도 실력이 필요해요", "상급자에게 적합해요 (초보자 비추)"];
 const goodTagOptions = ["피드백이 꼼꼼함", "기본기를 잘 잡아 줌", "질문하기 편함", "학원 분위기가 좋음", "집중이 잘되는 분위기임", "입시 정보가 많음", "자료/시범이 도움됨", "개별 관리가 잘됨", "커리큘럼이 좋음"];
-const concernTagOptions = ["질문하기 어려운 분위기", "너무 경쟁적인 분위기", "학원 분위기가 좋지 않은 편임", "학생별로 대우에 편차가 있음", "과제량이 부담스러움", "수업 속도가 빠름", "초보자가 따라가기 어려움", "상담과 실제 수업에서 차이가 느껴짐", "안내 받은 것과 비용이 다름", "과장된 입결 광고"];
+const concernTagOptions = ["과제량이 부담스러웠음", "수업 속도가 빠르게 느껴졌음", "질문하기 어려운 분위기였음", "피드백이 부족하게 느껴졌음", "학생별 관리나 피드백 차이가 느껴졌음", "상담 때 안내받은 비용과 실제 비용 차이가 있었음", "입결·합격 사례 설명이 과장되어 보였음", "학원 분위기가 나와 맞지 않았음", "특별히 없음"];
 const cautionTagOptions = ["스스로 질문해야 놓치지 않음", "멘탈 관리가 필요함", "과제 시간을 확보해야 함", "비용/수업 방식을 상담 때 확인 추천", "선생님 스타일 확인 필요"];
-const statuses = ["고3", "재수생", "N수생", "학부모", "합격생", "대학생"];
+const statuses = ["고3", "N수생", "대학생", "학부모"];
+const experienceTypes = ["", "실제 수강", "상담만 받음"];
+const admissionResults = ["", "합격", "불합격"];
 const MIN_DETAIL_LENGTH = 100;
 
 export default function ReviewNewPage() {
@@ -36,8 +38,17 @@ export default function ReviewNewPage() {
     classLevel: "기본기가 있으면 좋아요",
     detail: "",
     writerStatus: "고3",
+    contactMethod: "이메일",
     contact: "",
     attendedYear: "",
+    experienceType: "",
+    admissionResult: "",
+    attendedPeriod: "",
+  });
+  const [verificationChecks, setVerificationChecks] = useState({
+    notStaff: false,
+    directExperience: false,
+    falseReviewNotice: false,
   });
 
   const filteredAcademies = useMemo(() => {
@@ -62,6 +73,10 @@ export default function ReviewNewPage() {
     setter((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   }
 
+  function updateVerificationCheck(name: keyof typeof verificationChecks, checked: boolean) {
+    setVerificationChecks((current) => ({ ...current, [name]: checked }));
+  }
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const selectedAcademy = academies.find((academy) => academy.id === academyId);
@@ -70,6 +85,11 @@ export default function ReviewNewPage() {
 
     if (!academyName || preparedTypes.length === 0 || strongTypes.length === 0 || rating === 0 || feedbackTags.length === 0 || goodTags.length === 0 || concernTags.length === 0 || !form.writerStatus || !form.contact.trim()) {
       alert("필수 내용을 모두 입력해 주세요.");
+      return;
+    }
+
+    if (!verificationChecks.notStaff || !verificationChecks.directExperience || !verificationChecks.falseReviewNotice) {
+      alert("제출 전 확인 항목에 모두 동의해 주세요.");
       return;
     }
 
@@ -100,8 +120,13 @@ export default function ReviewNewPage() {
       cautionTags,
       summary: form.detail.trim().slice(0, 80),
       detail: form.detail,
+      contactMethod: form.contactMethod,
       contact: form.contact,
       attendedYear: form.attendedYear,
+      experienceType: form.experienceType,
+      admissionResult: form.admissionResult,
+      attendedPeriod: form.attendedPeriod,
+      verificationChecks,
       rating,
       pros: goodTags.join(", "),
       cons: concernTags.join(", "),
@@ -267,14 +292,55 @@ export default function ReviewNewPage() {
         </section>
 
         <section className="form-section">
-          <h2>작성자 정보</h2>
-          <div className="form-grid">
-            <label>현재 상태<select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select></label>
-            <label>전화번호<input type="tel" value={form.contact} onChange={(event) => updateField("contact", event.target.value)} placeholder="운영자 확인용" /></label>
-            <label>학원 다닌 년도<input value={form.attendedYear} onChange={(event) => updateField("attendedYear", event.target.value)} placeholder="선택 입력 예: 2025년" /></label>
+          <h2>검수용 정보</h2>
+          <div className="verification-intro">
+            <p>허위 리뷰나 학원 관계자 작성 리뷰를 방지하기 위해 운영자 검수용 정보를 받고 있습니다.</p>
+            <p>검수용 정보는 사이트에 공개되지 않으며, 리뷰 확인이 필요한 경우에만 사용됩니다.</p>
           </div>
-          <p className="muted">허위 리뷰나 조작 가능성에 대비해 작성자 확인용으로만 받습니다. 사이트에는 공개되지 않고 운영자만 확인합니다.</p>
+          <div className="form-grid">
+            <label>작성자 상태<select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select></label>
+            <label>연락 가능한 수단
+              <div className="contact-method-grid">
+                <select value={form.contactMethod} onChange={(event) => updateField("contactMethod", event.target.value)}>
+                  <option>이메일</option>
+                  <option>전화번호</option>
+                </select>
+                <input type={form.contactMethod === "이메일" ? "email" : "tel"} value={form.contact} onChange={(event) => updateField("contact", event.target.value)} placeholder={form.contactMethod === "이메일" ? "예: hello@example.com" : "예: 010-0000-0000"} />
+              </div>
+            </label>
+            <label>경험 유형<select value={form.experienceType} onChange={(event) => updateField("experienceType", event.target.value)}>{experienceTypes.map((type) => <option key={type} value={type}>{type || "선택 안 함"}</option>)}</select></label>
+            <label>합격 여부<select value={form.admissionResult} onChange={(event) => updateField("admissionResult", event.target.value)}>{admissionResults.map((result) => <option key={result} value={result}>{result || "선택 안 함"}</option>)}</select></label>
+            <label>다닌 시기<input value={form.attendedYear} onChange={(event) => updateField("attendedYear", event.target.value)} placeholder="선택 입력 예: 2025년" /></label>
+            <label>다닌 기간<input value={form.attendedPeriod} onChange={(event) => updateField("attendedPeriod", event.target.value)} placeholder="선택 입력 예: 6개월" /></label>
+          </div>
         </section>
+        <section className="form-section verification-check-section">
+          <h2>제출 전 확인</h2>
+          <div className="verification-checks">
+            <label>
+              <input type="checkbox" checked={verificationChecks.notStaff} onChange={(event) => updateVerificationCheck("notStaff", event.target.checked)} />
+              <span>저는 해당 학원의 관계자, 강사, 직원, 홍보 담당자가 아닙니다.</span>
+            </label>
+            <label>
+              <input type="checkbox" checked={verificationChecks.directExperience} onChange={(event) => updateVerificationCheck("directExperience", event.target.checked)} />
+              <span>이 리뷰는 실제 수강, 상담, 체험 수업 등 직접 경험을 바탕으로 작성했습니다.</span>
+            </label>
+            <label>
+              <input type="checkbox" checked={verificationChecks.falseReviewNotice} onChange={(event) => updateVerificationCheck("falseReviewNotice", event.target.checked)} />
+              <span>허위 내용이 확인될 경우 리뷰가 비공개 처리될 수 있음을 확인했습니다.</span>
+            </label>
+          </div>
+        </section>
+        <div className="review-disclosure-box">
+          <div>
+            <strong>공개되는 정보:</strong>
+            <p>익명, 작성자 상태, 준비 전형, 수업 분위기, 선택한 태그, 작성한 리뷰</p>
+          </div>
+          <div>
+            <strong>공개되지 않는 정보:</strong>
+            <p>연락 가능한 수단, 검수용 정보</p>
+          </div>
+        </div>
         <button type="submit" className="submit-button">리뷰 등록하기</button>
       </form>
     </PageLayout>
