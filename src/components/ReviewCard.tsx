@@ -35,7 +35,7 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   return (
     <article className="review-card">
       <div className="review-head">
-        <strong>익명 · {review.writerStatus || "작성자"}</strong>
+        <strong>{review.writerStatus || "작성자"}</strong>
         {review.status === "pending" && <span className="status-pill">검토 대기</span>}
         {(review.status === "rejected" || review.status === "hidden") && <span className="status-pill muted-pill">제외됨</span>}
       </div>

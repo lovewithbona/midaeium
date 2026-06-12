@@ -1385,21 +1385,21 @@ label input::placeholder {
 }
 
 .review-tag.feedback {
-  border-color: var(--line);
-  background: #f7f7f7;
-  color: var(--muted);
+  border-color: var(--violet);
+  background: #f4f2ff;
+  color: #4f48c6;
 }
 
 .review-tag.positive {
-  border-color: #bcd8ff;
-  background: #eef6ff;
-  color: #1857a7;
+  border-color: #9ccfb4;
+  background: #dbf3e4;
+  color: #123324;
 }
 
 .review-tag.negative {
-  border-color: #f0b8aa;
-  background: #fff0ec;
-  color: #9b2f20;
+  border-color: #eadf74;
+  background: #fbf4a5;
+  color: var(--text);
 }
 
 .review-tag.neutral {
@@ -1409,9 +1409,9 @@ label input::placeholder {
 }
 
 .review-tag.caution {
-  border-color: #f0b8aa;
-  background: #fff0ec;
-  color: #9b2f20;
+  border-color: #e6b3a6;
+  background: #ffe8df;
+  color: #4b2118;
 }
 
 .review-detail-preview {
