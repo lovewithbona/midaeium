@@ -258,6 +258,46 @@ p {
   padding: clamp(28px, 5vw, 56px) 0 20px;
 }
 
+.home-count-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: clamp(24px, 4.8vw, 58px);
+  font-weight: 760;
+  line-height: 1.15;
+}
+
+.home-count-banner span {
+  color: var(--muted);
+  font-size: clamp(18px, 2.8vw, 34px);
+  font-weight: 560;
+}
+
+.home-count-banner strong {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 8px 6px;
+  background: var(--soft);
+  color: var(--point-dark);
+  overflow: hidden;
+  animation: countReveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.home-count-banner strong:nth-of-type(2) {
+  animation-delay: 0.12s;
+  background: #fff8c9;
+  color: var(--text);
+}
+
+.home-count-banner b {
+  display: inline-block;
+  animation: slotRoll 0.88s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .home-hero h1 {
   max-width: 760px;
   margin-bottom: 0;
@@ -586,6 +626,16 @@ p {
   color: var(--text);
 }
 
+.tag-type {
+  background: var(--soft);
+  color: var(--point-dark);
+}
+
+.tag-review {
+  background: #fff8c9;
+  color: var(--text);
+}
+
 .academy-hashtags {
   display: flex;
   flex-wrap: wrap;
@@ -631,6 +681,11 @@ p {
   color: var(--text);
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+.external-link::after {
+  content: " ↗";
+  font-size: 0.9em;
 }
 
 dt {
@@ -1089,6 +1144,12 @@ label input::placeholder {
   color: var(--text);
 }
 
+.review-tag.review {
+  border-color: #eadf74;
+  background: #fffbe0;
+  color: var(--text);
+}
+
 .review-tag.feedback {
   border-color: #d8d2ff;
   background: #f4f2ff;
@@ -1293,9 +1354,9 @@ input::placeholder {
 }
 
 .verification-checks label {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 12px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
   padding: 16px;
   border: 1px solid var(--line);
   background: #fff;
@@ -1306,8 +1367,40 @@ input::placeholder {
 .verification-checks input {
   width: 18px;
   height: 18px;
-  margin-top: 3px;
+  margin: 0;
   accent-color: var(--point);
+}
+
+.required-mark {
+  display: inline;
+  color: var(--text);
+  font-weight: 760;
+}
+
+@keyframes slotRoll {
+  0% {
+    opacity: 0;
+    transform: translateY(-120%);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(12%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes countReveal {
+  0% {
+    filter: blur(4px);
+    transform: translateY(8px);
+  }
+  100% {
+    filter: blur(0);
+    transform: translateY(0);
+  }
 }
 
 .review-disclosure-box {

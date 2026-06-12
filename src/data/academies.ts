@@ -2735,7 +2735,6 @@ export type Review = {
   goodTags?: string[];
   concernTags?: string[];
   cautionTags?: string[];
-  summary?: string;
   detail?: string;
   contactMethod?: string;
   contact?: string;

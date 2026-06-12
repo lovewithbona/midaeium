@@ -42,7 +42,7 @@ export function getAcademyAggregatedInsights(academyId: string) {
 }
 
 export function getReviewKeywordLabels(review: Review) {
-  // 추후 summary/detail의 자주 등장하는 표현을 분석해 키워드를 확장할 수 있습니다.
+  // 추후 자세한 후기의 자주 등장하는 표현을 분석해 키워드를 확장할 수 있습니다.
   // 지금은 사용자가 선택한 태그만 해시태그 후보로 사용합니다.
   return [
     ...(review.feedbackTags || []),
@@ -76,7 +76,7 @@ export function getRepresentativeReview(reviews: Review[]) {
 }
 
 export function getReviewPreview(review: Review, length = 60) {
-  const text = review.summary || review.detail || "";
+  const text = review.detail || "";
   return text.length > length ? `${text.slice(0, length)}...` : text;
 }
 

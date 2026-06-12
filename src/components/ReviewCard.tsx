@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { Review } from "../data/academies";
 import { addReviewLike, getReviewLikeCount } from "../utils/storage";
-import { createHashtag, getReviewKeywordLabels, getReviewPreview } from "../utils/reviewStats";
+import { createHashtag, getReviewPreview } from "../utils/reviewStats";
 
 export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
   const strongTypes = review.strongTypes?.join(", ") || "전형 미입력";
   const preview = getReviewPreview(review, 90);
-  const hashtags = getReviewKeywordLabels(review).map(createHashtag).filter(Boolean).slice(0, 10);
+  const hashtags = getReviewTagItems(review).slice(0, 10);
   const [likes, setLikes] = useState(() => getReviewLikeCount(review));
 
   function handleLike() {
@@ -34,7 +34,7 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       <div className="review-body">
         {hashtags.length > 0 && (
           <div className="review-tags review-tags-inline">
-            {hashtags.map((tag) => <span className="review-tag" key={tag}>{tag}</span>)}
+            {hashtags.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${tag.tone}-${tag.label}`}>{tag.label}</span>)}
           </div>
         )}
         {review.detail && <p><b>자세한 후기</b>{review.detail}</p>}
@@ -44,4 +44,16 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       </button>
     </article>
   );
+}
+
+function getReviewTagItems(review: Review) {
+  const items = [
+    ...(review.feedbackTags || []).map((label) => ({ label: createHashtag(label), tone: "feedback" })),
+    ...(review.goodTags || []).map((label) => ({ label: createHashtag(label), tone: "positive" })),
+    ...(review.concernTags || []).map((label) => ({ label: createHashtag(label), tone: "concern" })),
+    ...(review.cautionTags || []).map((label) => ({ label: createHashtag(label), tone: "caution" })),
+    ...(review.teachingStyleTags || []).map((label) => ({ label: createHashtag(label), tone: "feedback" })),
+  ].filter((item) => item.label);
+
+  return Array.from(new Map(items.map((item) => [item.label, item])).values());
 }

@@ -11,7 +11,13 @@ export default function HomePage() {
   return (
     <PageLayout>
       <section className="home-hero">
-        <p className="eyebrow">현재 {academyCount}개의 학원과 {reviewCount}개의 리뷰가 등록되어 있어요.</p>
+        <div className="home-count-banner" aria-label={`현재 ${academyCount}개의 학원과 ${reviewCount}개의 리뷰가 등록되어 있어요.`}>
+          <span>현재</span>
+          <strong><b>{academyCount}</b>개의 학원</strong>
+          <span>과</span>
+          <strong><b>{reviewCount}</b>개의 리뷰</strong>
+          <span>가 등록되어 있어요.</span>
+        </div>
         <h1>미대 입시 정보의 차이를 줄입니다.</h1>
         <p>지역과 전형에 맞는 학원을 찾고, 실제 학생 리뷰를 비교해 보세요.</p>
         <SearchBar buttonLabel="검색하기" />

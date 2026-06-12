@@ -36,6 +36,7 @@ export default function AcademyDetailPage() {
     return getReviewLikeCount(b) - getReviewLikeCount(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
   const homepageLabel = getHomepageLabel(academy.officialWebsiteUrl);
+  const instagramLabel = getInstagramLabel(academy.instagramUrl);
   const hasChannel = Boolean(academy.officialWebsiteUrl || academy.instagramUrl || academy.naverBlogUrl);
 
   return (
@@ -94,36 +95,35 @@ export default function AcademyDetailPage() {
             </div>
             <div>
               <span>준비 가능 전형</span>
-              <strong>{preparedLabels.length > 0 ? preparedLabels.slice(0, 4).map(formatCountLabel).join(", ") : "확인 중"}</strong>
+              <strong>{preparedLabels.length > 0 ? preparedLabels.slice(0, 4).map((item) => item.label).join(", ") : "확인 중"}</strong>
             </div>
             <div>
               <span>강점 입시 유형</span>
-              <strong>{strongLabels.length > 0 ? strongLabels.slice(0, 4).map(formatCountLabel).join(", ") : "확인 중"}</strong>
+              <strong>{strongLabels.length > 0 ? strongLabels.slice(0, 4).map((item) => item.label).join(", ") : "확인 중"}</strong>
             </div>
             <div>
               <span>주요 대비 대학</span>
-              <strong>{insights.schoolTagCounts.length > 0 ? insights.schoolTagCounts.slice(0, 4).map(formatCountLabel).join(", ") : academy.schoolTags.length > 0 ? academy.schoolTags.map((tag) => tag.schoolName).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
+              <strong>{insights.schoolTagCounts.length > 0 ? insights.schoolTagCounts.slice(0, 4).map((item) => item.label).join(", ") : academy.schoolTags.length > 0 ? academy.schoolTags.map((tag) => tag.schoolName).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
             </div>
           </div>
-          <p className="type-note">리뷰 기반 정보이며, 초기 등록 정보와 함께 참고해 주세요.</p>
           {hasChannel && (
             <dl className="detail-list compact">
               {academy.officialWebsiteUrl && (
                 <>
                   <dt>공식 홈페이지</dt>
-                  <dd><a href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">{homepageLabel}</a></dd>
+                  <dd><a className="external-link" href={academy.officialWebsiteUrl} target="_blank" rel="noreferrer">{homepageLabel}</a></dd>
                 </>
               )}
               {academy.instagramUrl && (
                 <>
                   <dt>인스타그램</dt>
-                  <dd><a href={academy.instagramUrl} target="_blank" rel="noreferrer">인스타그램 보기</a></dd>
+                  <dd><a className="external-link" href={academy.instagramUrl} target="_blank" rel="noreferrer">{instagramLabel}</a></dd>
                 </>
               )}
               {academy.naverBlogUrl && (
                 <>
                   <dt>네이버 블로그</dt>
-                  <dd><a href={academy.naverBlogUrl} target="_blank" rel="noreferrer">네이버 블로그 보기</a></dd>
+                  <dd><a className="external-link" href={academy.naverBlogUrl} target="_blank" rel="noreferrer">네이버 블로그</a></dd>
                 </>
               )}
             </dl>
@@ -147,7 +147,7 @@ export default function AcademyDetailPage() {
             <strong>많이 언급된 키워드</strong>
             <div className="review-tags review-tags-inline">
               {insights.topKeywordCounts.length > 0 ? insights.topKeywordCounts.slice(0, 10).map((item) => (
-                <span className="review-tag" key={item.label}>{createHashtag(item.label)} {item.count}</span>
+                <span className="review-tag review" key={item.label}>{createHashtag(item.label)} {item.count}</span>
               )) : <span className="muted">아직 충분한 키워드가 없습니다.</span>}
             </div>
           </div>
@@ -170,10 +170,6 @@ export default function AcademyDetailPage() {
   );
 }
 
-function formatCountLabel(item: { label: string; count: number }) {
-  return item.count > 0 ? `${item.label} ${item.count}` : item.label;
-}
-
 function getHomepageLabel(url: string | null) {
   if (!url) return "";
 
@@ -181,5 +177,16 @@ function getHomepageLabel(url: string | null) {
     return new URL(url).hostname.replace(/^www\./, "");
   } catch {
     return "공식 홈페이지";
+  }
+}
+
+function getInstagramLabel(url: string | null) {
+  if (!url) return "인스타그램";
+
+  try {
+    const pathname = new URL(url).pathname.split("/").filter(Boolean)[0];
+    return pathname ? `@${pathname}` : "인스타그램";
+  } catch {
+    return "인스타그램";
   }
 }
