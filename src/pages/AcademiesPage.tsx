@@ -8,7 +8,7 @@ import { getAcademyAggregatedInsights, getAcademyReviewStats } from "../utils/re
 
 const primaryRegions = ["전체", "서울", "경기", "부산", "울산", "대구", "광주"];
 const primaryTypes = ["기초디자인", "기초소양", "발상과 표현", "회화", "조소", "만화·애니"];
-const schoolOptions = ["국민대", "건국대", "홍익대", "서울과기대", "이화여대", "숙명여대", "기타"];
+const schoolOptions = ["국민대", "건국대", "홍익대", "서울과기대", "이화여대", "숙명여대", "성신여대", "중앙대", "경희대", "한예종", "기타"];
 
 export default function AcademiesPage() {
   const [params, setParams] = useSearchParams();

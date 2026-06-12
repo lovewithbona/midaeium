@@ -17,19 +17,17 @@ export type EntranceType =
   | "만화·애니"
   | "상황표현"
   | "칸만화"
-  | "포트폴리오"
-  | "유학미술"
-  | "미대편입"
-  | "예중·예고";
+  | "포트폴리오";
 
 export type TypeConfidence = "공식 확인" | "보조 출처 확인" | "이름 기반 1차 분류" | "확인 필요";
-export type SchoolTagCategory = "디자인" | "회화" | "조소" | "만화·애니" | "예중·예고" | "유학미술" | "미대편입" | "기타";
+export type SchoolTagCategory = "디자인" | "회화" | "조소" | "만화·애니" | "기타";
 export type SchoolTagSource = "운영자 입력" | "리뷰 기반" | "확인 필요";
 
 export type SchoolTag = {
   schoolName: string;
   category: SchoolTagCategory;
   source: SchoolTagSource;
+  note?: string;
 };
 
 export type AcademySeedWithTypes = {
@@ -449,11 +447,11 @@ export const academySeedsWithTypes: AcademySeedWithTypes[] = [
     mapSearchQuery: "강남 미대편입창조 강남캠퍼스 서울 강남구 강남대로94길 20",
     sourceUrl: null,
     verifiedStatus: "확인 필요",
-    entranceTypes: ["미대편입", "포트폴리오", "기초디자인"],
-    strongTypes: ["미대편입"],
+    entranceTypes: ["포트폴리오", "기초디자인"],
+    strongTypes: ["포트폴리오"],
     typeSourceUrl: null,
     typeConfidence: "이름 기반 1차 분류",
-    typeMemo: "미대편입 관련 학원명 기반 분류입니다.",
+    typeMemo: "기존 분류: 미대편입. 초기 서비스 범위에서는 포트폴리오/기초디자인 중심으로 참고하세요.",
   },
   {
     id: "gangnam-bareun-art",
@@ -653,11 +651,11 @@ export const academySeedsWithTypes: AcademySeedWithTypes[] = [
     mapSearchQuery: "미대편입창조 홍대캠퍼스 서울 마포구 와우산로23길 9, 4층",
     sourceUrl: null,
     verifiedStatus: "확인 필요",
-    entranceTypes: ["미대편입", "포트폴리오", "기초디자인"],
-    strongTypes: ["미대편입"],
+    entranceTypes: ["포트폴리오", "기초디자인"],
+    strongTypes: ["포트폴리오"],
     typeSourceUrl: null,
     typeConfidence: "이름 기반 1차 분류",
-    typeMemo: "미대편입 관련 학원명 기반 분류입니다.",
+    typeMemo: "기존 분류: 미대편입. 초기 서비스 범위에서는 포트폴리오/기초디자인 중심으로 참고하세요.",
   },
   {
     id: "cnc-art-hongdae-main",
@@ -942,11 +940,11 @@ export const academySeedsWithTypes: AcademySeedWithTypes[] = [
     mapSearchQuery: "아트포스유학미술학원 서울 강남구 선릉로86길 7, 3층",
     sourceUrl: null,
     verifiedStatus: "확인 필요",
-    entranceTypes: ["유학미술", "포트폴리오", "드로잉"],
-    strongTypes: ["유학미술", "포트폴리오"],
+    entranceTypes: ["포트폴리오", "드로잉"],
+    strongTypes: ["포트폴리오"],
     typeSourceUrl: null,
     typeConfidence: "이름 기반 1차 분류",
-    typeMemo: "유학미술 관련 학원명 기반 분류입니다.",
+    typeMemo: "기존 분류: 유학미술. 초기 서비스 범위에서는 포트폴리오/드로잉 중심으로 참고하세요.",
   },
   {
     id: "seolleung-iam-art",
@@ -1044,11 +1042,11 @@ export const academySeedsWithTypes: AcademySeedWithTypes[] = [
     mapSearchQuery: "예중예고예인학원 서울 강남구 선릉로 414",
     sourceUrl: null,
     verifiedStatus: "확인 필요",
-    entranceTypes: ["예중·예고", "회화", "드로잉"],
-    strongTypes: ["예중·예고"],
+    entranceTypes: ["회화", "드로잉"],
+    strongTypes: ["회화"],
     typeSourceUrl: null,
     typeConfidence: "이름 기반 1차 분류",
-    typeMemo: "예중·예고 관련 학원명/공개 목록 기반 분류입니다.",
+    typeMemo: "기존 분류: 예중·예고. 초기 서비스 범위에서는 회화/드로잉 중심으로 참고하세요.",
   },
   {
     id: "seolleung-design-gogh-main",
@@ -2777,7 +2775,4 @@ export const types: EntranceType[] = [
   "상황표현",
   "칸만화",
   "포트폴리오",
-  "유학미술",
-  "미대편입",
-  "예중·예고",
 ];
