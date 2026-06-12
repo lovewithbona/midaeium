@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import AnimatedNumber from "../components/AnimatedNumber";
 import PageLayout from "../components/PageLayout";
 import SearchBar from "../components/SearchBar";
 import { academies } from "../data/academies";
@@ -11,12 +12,13 @@ export default function HomePage() {
   return (
     <PageLayout>
       <section className="home-hero">
-        <div className="home-count-banner" aria-label={`현재 ${academyCount}개의 학원과 ${reviewCount}개의 리뷰가 등록되어 있어요.`}>
-          <span>현재</span>
-          <strong><b>{academyCount}</b>개의 학원</strong>
-          <span>과</span>
-          <strong><b>{reviewCount}</b>개의 리뷰</strong>
-          <span>가 등록되어 있어요.</span>
+        <div className="home-count-banner">
+          <span className="sr-only">현재 {academyCount}개의 학원과 {reviewCount}개의 리뷰가 등록되어 있어요.</span>
+          <span aria-hidden="true">현재</span>
+          <strong aria-hidden="true"><AnimatedNumber value={academyCount} />개의 학원</strong>
+          <span aria-hidden="true">과</span>
+          <strong aria-hidden="true"><AnimatedNumber value={reviewCount} />개의 리뷰</strong>
+          <span aria-hidden="true">가 등록되어 있어요.</span>
         </div>
         <h1>미대 입시 정보의 차이를 줄입니다.</h1>
         <p>지역과 전형에 맞는 학원을 찾고, 실제 학생 리뷰를 비교해 보세요.</p>
