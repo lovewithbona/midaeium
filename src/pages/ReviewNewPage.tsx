@@ -12,8 +12,7 @@ const classLevels = ["입문자도 가능해요", "기본기가 있으면 좋아
 const goodTagOptions = ["피드백이 꼼꼼함", "기본기를 잘 잡아 줌", "질문하기 편함", "학원 분위기가 좋음", "집중이 잘되는 분위기임", "입시 정보가 많음", "자료/시범이 도움됨", "개별 관리가 잘됨", "커리큘럼이 좋음"];
 const concernTagOptions = ["과제량이 부담스러웠음", "수업 속도가 빠르게 느껴졌음", "질문하기 어려운 분위기였음", "피드백이 부족하게 느껴졌음", "학생별 관리나 피드백 차이가 느껴졌음", "상담 때 안내받은 비용과 실제 비용 차이가 있었음", "입결·합격 사례 설명이 과장되어 보였음", "학원 분위기가 나와 맞지 않았음", "특별히 없음"];
 const cautionTagOptions = ["스스로 질문해야 놓치지 않음", "멘탈 관리가 필요함", "과제 시간을 확보해야 함", "비용/수업 방식을 상담 때 확인 추천", "선생님 스타일 확인 필요"];
-const statuses = ["고3", "N수생", "대학생", "학부모"];
-const experienceTypes = ["", "실제 수강", "상담만 받음"];
+const statuses = ["고2 이하", "고3", "N수생", "대학생", "학부모"];
 const admissionResults = ["", "합격", "불합격"];
 const schoolTagOptions = ["국민대", "건국대", "홍익대", "서울과기대", "이화여대", "숙명여대", "성신여대", "중앙대", "경희대", "한예종", "기타"];
 const MIN_DETAIL_LENGTH = 100;
@@ -23,8 +22,8 @@ export default function ReviewNewPage() {
   const [keyword, setKeyword] = useState("");
   const [isNewAcademy, setIsNewAcademy] = useState(false);
   const [done, setDone] = useState(false);
-  const [preparedTypes, setPreparedTypes] = useState<string[]>(["기초디자인"]);
-  const [strongTypes, setStrongTypes] = useState<string[]>(["기초디자인"]);
+  const [preparedTypes, setPreparedTypes] = useState<string[]>([]);
+  const [strongTypes, setStrongTypes] = useState<string[]>([]);
   const [goodTags, setGoodTags] = useState<string[]>([]);
   const [concernTags, setConcernTags] = useState<string[]>([]);
   const [cautionTags, setCautionTags] = useState<string[]>([]);
@@ -38,12 +37,12 @@ export default function ReviewNewPage() {
     atmosphere: "진지한 편이에요",
     homeworkLoad: "적당해요",
     classLevel: "기본기가 있으면 좋아요",
+    summary: "",
     detail: "",
-    writerStatus: "고3",
+    writerStatus: "고2 이하",
     contactMethod: "이메일",
     contact: "",
     attendedYear: "",
-    experienceType: "",
     admissionResult: "",
     attendedPeriod: "",
   });
@@ -100,6 +99,7 @@ export default function ReviewNewPage() {
       concernTags,
       writerStatus: form.writerStatus,
       contact: form.contact,
+      summary: form.summary,
       detail: form.detail,
       verificationChecks,
     });
@@ -130,11 +130,11 @@ export default function ReviewNewPage() {
       goodTags,
       concernTags,
       cautionTags,
+      summary: form.summary,
       detail: form.detail,
       contactMethod: form.contactMethod,
       contact: form.contact,
       attendedYear: form.attendedYear,
-      experienceType: form.experienceType,
       admissionResult: form.admissionResult,
       attendedPeriod: form.attendedPeriod,
       verificationChecks,
@@ -175,11 +175,11 @@ export default function ReviewNewPage() {
       </section>
       <div className="notice-box review-notice-box">
         <div>
-          <p>로그인하고도 등록할 수 있지만 비로그인으로 작성한 리뷰는 나중에 마이페이지에서 확인하거나 수정할 수 없으니 주의 바랍니다.</p>
-          <p>모든 리뷰는 익명으로 공개됩니다.</p>
-          <p>운영자 확인 후 반영되며 과도하게 감정적이거나 편파적인 리뷰는 등록되지 않을 수 있습니다.</p>
+          <p>로그인하지 않아도 리뷰를 등록할 수 있습니다.</p>
+          <p>다만 비로그인으로 작성한 리뷰는 나중에 직접 수정하거나 삭제하기 어렵습니다.</p>
+          <p>모든 리뷰는 익명으로 공개되며, 운영자 확인 후 사이트에 반영됩니다.</p>
         </div>
-        <Link className="secondary-button" to="/login">회원가입하기</Link>
+        <Link className="secondary-button" to="/login">로그인하고 작성하기</Link>
       </div>
       <form className="review-form" onSubmit={handleSubmit}>
         <section className="form-section">
@@ -306,7 +306,8 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="form-grid">
-            <label className="wide">자세한 후기 <RequiredMark /><textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업을 들으며 실제로 느낀 분위기, 좋았던 점, 조심해야 할 점을 구체적으로 적어 주세요." /><small>{form.detail.trim().length}/{MIN_DETAIL_LENGTH}자 이상</small></label>
+            <label className="wide">한 줄 후기 <RequiredMark /><input value={form.summary} onChange={(event) => updateField("summary", event.target.value)} placeholder="예: 피드백은 자세했지만 과제량이 많아서 시간 관리가 필요했어요." /></label>
+            <label className="wide">자세한 후기 <RequiredMark /><textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업 분위기, 좋았던 점, 아쉬웠던 점, 어떤 학생에게 추천하는지 적어 주세요." /><small>{form.detail.trim().length}/{MIN_DETAIL_LENGTH}자 이상</small></label>
           </div>
         </section>
 
@@ -314,7 +315,7 @@ export default function ReviewNewPage() {
           <h2>검수용 정보</h2>
           <div className="verification-intro">
             <p>허위 리뷰나 학원 관계자 작성 리뷰를 방지하기 위해 운영자 검수용 정보를 받고 있습니다.</p>
-            <p>연락 가능한 수단은 사이트에 공개되지 않으며, 리뷰 확인이 필요한 경우에만 사용됩니다.</p>
+            <p>검수용 정보는 사이트에 공개되지 않으며, 리뷰 확인이 필요한 경우에만 사용됩니다.</p>
           </div>
           <div className="form-grid">
             <label>작성자 상태 <RequiredMark /><select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select></label>
@@ -327,7 +328,6 @@ export default function ReviewNewPage() {
                 <input type={form.contactMethod === "이메일" ? "email" : "tel"} value={form.contact} onChange={(event) => updateField("contact", event.target.value)} placeholder={form.contactMethod === "이메일" ? "예: hello@example.com" : "예: 010-0000-0000"} />
               </div>
             </label>
-            <label>경험 유형<select value={form.experienceType} onChange={(event) => updateField("experienceType", event.target.value)}>{experienceTypes.map((type) => <option key={type} value={type}>{type || "선택 안 함"}</option>)}</select></label>
             <label>합격 여부<select value={form.admissionResult} onChange={(event) => updateField("admissionResult", event.target.value)}>{admissionResults.map((result) => <option key={result} value={result}>{result || "선택 안 함"}</option>)}</select></label>
             <label>다닌 시기<input value={form.attendedYear} onChange={(event) => updateField("attendedYear", event.target.value)} placeholder="선택 입력 예: 2025년" /></label>
             <label>다닌 기간<input value={form.attendedPeriod} onChange={(event) => updateField("attendedPeriod", event.target.value)} placeholder="선택 입력 예: 6개월" /></label>
@@ -342,7 +342,7 @@ export default function ReviewNewPage() {
             </label>
             <label>
               <input type="checkbox" checked={verificationChecks.directExperience} onChange={(event) => updateVerificationCheck("directExperience", event.target.checked)} />
-              <span>이 리뷰는 실제 수강, 상담, 체험 수업 등 직접 경험을 바탕으로 작성했습니다.</span>
+              <span>이 리뷰는 실제 경험을 바탕으로 작성했습니다.</span>
             </label>
             <label>
               <input type="checkbox" checked={verificationChecks.falseReviewNotice} onChange={(event) => updateVerificationCheck("falseReviewNotice", event.target.checked)} />
@@ -370,6 +370,7 @@ function getMissingRequiredMessage(values: {
   concernTags: string[];
   writerStatus: string;
   contact: string;
+  summary: string;
   detail: string;
   verificationChecks: { notStaff: boolean; directExperience: boolean; falseReviewNotice: boolean };
 }) {
@@ -380,6 +381,7 @@ function getMissingRequiredMessage(values: {
   if (values.feedbackTags.length === 0) return "피드백 스타일 항목 입력이 안 됐어요.";
   if (values.goodTags.length === 0) return "좋았던 점 항목 입력이 안 됐어요.";
   if (values.concernTags.length === 0) return "아쉬웠던 점 항목 입력이 안 됐어요.";
+  if (!values.summary.trim()) return "한 줄 후기 항목 입력이 안 됐어요.";
   if (!values.detail.trim()) return "자세한 후기 항목 입력이 안 됐어요.";
   if (!values.writerStatus) return "작성자 상태 항목 입력이 안 됐어요.";
   if (!values.contact.trim()) return "연락 가능한 수단 항목 입력이 안 됐어요.";

@@ -2653,7 +2653,7 @@ export const academySeedsWithTypes: AcademySeedWithTypes[] = [
 
 export const getNaverMapUrl = (query: string) => `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
 
-export const getAcademyMapSearchQuery = (academy: AcademySeedWithTypes) => `${academy.name} ${academy.region} ${academy.district}`;
+export const getAcademyMapSearchQuery = (academy: AcademySeedWithTypes) => academy.mapSearchQuery || `${academy.name} ${academy.region} ${academy.district}`;
 
 export const getAcademyMapUrl = (academy: AcademySeedWithTypes) => getNaverMapUrl(getAcademyMapSearchQuery(academy));
 
@@ -2735,6 +2735,7 @@ export type Review = {
   goodTags?: string[];
   concernTags?: string[];
   cautionTags?: string[];
+  summary?: string;
   detail?: string;
   contactMethod?: string;
   contact?: string;

@@ -6,6 +6,10 @@ type ReviewQueryOptions = {
   includePending?: boolean;
 };
 
+export type KeywordTone = "positive" | "negative" | "neutral";
+type KeywordSource = "feedbackTags" | "goodTags" | "concernTags" | "cautionTags" | "teachingStyleTags";
+const excludedKeywordLabels = new Set(["특별히 없음", "해당 없음", "잘 모르겠음", "선택 안 함"]);
+
 export function getAllReviews(options: ReviewQueryOptions = {}): Review[] {
   const reviews = [...getStoredReviews(), ...demoReviews];
   if (options.includePending) return reviews;
@@ -37,20 +41,36 @@ export function getAcademyAggregatedInsights(academyId: string) {
     preparedTypeCounts: countLabels(reviews.flatMap((review) => review.preparedTypes || [])),
     strongTypeCounts: countLabels(reviews.flatMap((review) => review.strongTypes || [])),
     schoolTagCounts: countLabels(reviews.flatMap((review) => review.reviewSchoolTags || [])),
-    topKeywordCounts: countLabels(reviews.flatMap(getReviewKeywordLabels)),
+    topKeywordCounts: countKeywordItems(reviews.flatMap(getReviewKeywordItems)),
   };
 }
 
 export function getReviewKeywordLabels(review: Review) {
   // 추후 자세한 후기의 자주 등장하는 표현을 분석해 키워드를 확장할 수 있습니다.
   // 지금은 사용자가 선택한 태그만 해시태그 후보로 사용합니다.
+  return getReviewKeywordItems(review).map((item) => item.label);
+}
+
+export function getReviewKeywordItems(review: Review) {
   return [
-    ...(review.feedbackTags || []),
-    ...(review.goodTags || []),
-    ...(review.concernTags || []),
-    ...(review.cautionTags || []),
-    ...(review.teachingStyleTags || []),
-  ];
+    ...(review.feedbackTags || []).map((label) => createKeywordItem(label, "feedbackTags")),
+    ...(review.goodTags || []).map((label) => createKeywordItem(label, "goodTags")),
+    ...(review.concernTags || []).map((label) => createKeywordItem(label, "concernTags")),
+    ...(review.cautionTags || []).map((label) => createKeywordItem(label, "cautionTags")),
+    ...(review.teachingStyleTags || []).map((label) => createKeywordItem(label, "teachingStyleTags")),
+  ].filter((item) => item.label && !excludedKeywordLabels.has(item.label));
+}
+
+export function getKeywordTone(label: string, source?: string): KeywordTone {
+  if (source === "goodTags") return "positive";
+  if (source === "concernTags" || source === "cautionTags") return "negative";
+
+  const negativeHints = ["부담", "어려움", "부족", "차이", "과장", "비용", "맞지", "빠름", "압박", "소리", "비하", "창피", "위협", "폭언", "모욕"];
+  const positiveHints = ["꼼꼼", "자세", "편함", "잘 잡아줌", "좋음", "체계적", "만족", "관리가 잘됨", "정보가 많음"];
+
+  if (negativeHints.some((hint) => label.includes(hint))) return "negative";
+  if (positiveHints.some((hint) => label.includes(hint))) return "positive";
+  return "neutral";
 }
 
 export function createHashtag(label: string) {
@@ -76,7 +96,7 @@ export function getRepresentativeReview(reviews: Review[]) {
 }
 
 export function getReviewPreview(review: Review, length = 60) {
-  const text = review.detail || "";
+  const text = review.summary || review.detail || "";
   return text.length > length ? `${text.slice(0, length)}...` : text;
 }
 
@@ -90,4 +110,20 @@ function countLabels(labels: string[]) {
   return [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ko"))
     .map(([label, count]) => ({ label, count }));
+}
+
+function createKeywordItem(label: string, source: KeywordSource) {
+  return { label, source, tone: getKeywordTone(label, source) };
+}
+
+function countKeywordItems(items: { label: string; tone: KeywordTone }[]) {
+  const counts = new Map<string, { label: string; count: number; tone: KeywordTone }>();
+
+  items.forEach((item) => {
+    const current = counts.get(item.label);
+    if (current) current.count += 1;
+    else counts.set(item.label, { label: item.label, count: 1, tone: item.tone });
+  });
+
+  return [...counts.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "ko"));
 }

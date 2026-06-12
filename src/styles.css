@@ -1139,33 +1139,62 @@ label input::placeholder {
 }
 
 .review-tag.concern {
-  border-color: #eadf74;
-  background: #fffbe0;
-  color: var(--text);
+  border-color: #f0b8aa;
+  background: #fff0ec;
+  color: #9b2f20;
 }
 
 .review-tag.review {
-  border-color: #eadf74;
-  background: #fffbe0;
-  color: var(--text);
+  border-color: var(--line);
+  background: #f7f7f7;
+  color: var(--muted);
 }
 
 .review-tag.feedback {
-  border-color: #d8d2ff;
-  background: #f4f2ff;
-  color: #4f48c6;
+  border-color: var(--line);
+  background: #f7f7f7;
+  color: var(--muted);
 }
 
 .review-tag.positive {
-  border-color: #b7dcc6;
-  background: #ecf8f0;
-  color: #1f4a34;
+  border-color: #bcd8ff;
+  background: #eef6ff;
+  color: #1857a7;
+}
+
+.review-tag.negative {
+  border-color: #f0b8aa;
+  background: #fff0ec;
+  color: #9b2f20;
+}
+
+.review-tag.neutral {
+  border-color: var(--line);
+  background: #f7f7f7;
+  color: var(--muted);
 }
 
 .review-tag.caution {
-  border-color: #e8c2b7;
-  background: #fff0ea;
-  color: #5a2a1f;
+  border-color: #f0b8aa;
+  background: #fff0ec;
+  color: #9b2f20;
+}
+
+.review-detail-preview {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.review-detail-preview p {
+  margin: 0;
+}
+
+.review-detail-preview .clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .review-like-button {

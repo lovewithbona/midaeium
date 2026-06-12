@@ -23,15 +23,10 @@ npm run dev
 - 학원 데이터는 `src/data/academies.ts`의 초기 후보 데이터를 사용합니다.
 - 리뷰 등록 데이터는 브라우저 `localStorage`에 저장됩니다.
 - 등록된 리뷰는 운영자 확인 전 상태인 `pending`으로 저장됩니다.
-- 학원 상세 페이지에서 카카오 지도를 표시하고, 실패 시 외부 지도 검색 링크로 연결합니다.
+- 학원 상세 페이지의 위치 확인은 지도 API가 아니라 네이버 지도 외부 검색 링크로 연결합니다.
+- 현재 로그인과 관리자 검수 화면은 학교 프로젝트용 시연 기능입니다. 실제 운영에서는 별도 인증 시스템이 필요합니다.
 
 ## GitHub Pages 배포
-
-GitHub 저장소의 Settings → Secrets and variables → Actions에 아래 값을 추가합니다.
-
-```txt
-VITE_KAKAO_MAP_KEY=카카오 JavaScript 키
-```
 
 Settings → Pages에서 Source를 GitHub Actions로 선택하면 `main` 브랜치에 push될 때 자동 배포됩니다.
 

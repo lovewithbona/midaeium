@@ -28,6 +28,7 @@ export default function AcademyDetailPage() {
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
   const insights = getAcademyAggregatedInsights(academy.id);
   const representativeReview = getRepresentativeReview(reviews);
+  const hasReviews = reviewCount > 0;
   const preparedLabels = insights.preparedTypeCounts.length > 0 ? insights.preparedTypeCounts : academy.entranceTypes.map((label) => ({ label, count: 0 }));
   const strongLabels = insights.strongTypeCounts.length > 0 ? insights.strongTypeCounts : academy.strongTypes.map((label) => ({ label, count: 0 }));
   const sortedReviews = [...reviews].sort((a, b) => {
@@ -47,16 +48,23 @@ export default function AcademyDetailPage() {
           <h1>{academy.name}</h1>
           <p>{academy.location}</p>
           <div className="detail-rating-line">
-            <strong>평균 하트 {averageRating.toFixed(1)} / 5</strong>
+            {hasReviews ? <strong>평균 하트 {averageRating.toFixed(1)} / 5</strong> : <strong>아직 하트 평가가 없어요.</strong>}
             <span>리뷰 {reviewCount}개</span>
           </div>
-          {representativeReview && (
-            <div className="featured-review-box">
-              <span>{representativeReview.title}</span>
-              <p>“{representativeReview.preview}”</p>
-              <small>익명 · {representativeReview.review.writerStatus} · {representativeReview.review.strongTypes?.[0] || "전형 미입력"}</small>
-            </div>
-          )}
+          <div className="featured-review-box">
+            {representativeReview ? (
+              <>
+                <span>{representativeReview.title}</span>
+                <p>“{representativeReview.preview}”</p>
+                <small>익명 · {representativeReview.review.writerStatus} · {representativeReview.review.strongTypes?.[0] || "전형 미입력"}</small>
+              </>
+            ) : (
+              <>
+                <span>대표 리뷰</span>
+                <p>아직 대표 리뷰가 없어요. 첫 리뷰를 남겨 주세요.</p>
+              </>
+            )}
+          </div>
         </div>
         <Link className="primary-button" to="/review/new">리뷰 등록하기</Link>
       </section>
@@ -106,6 +114,7 @@ export default function AcademyDetailPage() {
               <strong>{insights.schoolTagCounts.length > 0 ? insights.schoolTagCounts.slice(0, 4).map((item) => item.label).join(", ") : academy.schoolTags.length > 0 ? academy.schoolTags.map((tag) => tag.schoolName).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
             </div>
           </div>
+          <p className="type-note">{hasReviews ? "지금까지 등록된 리뷰를 바탕으로 정리한 정보입니다." : "아직 리뷰가 충분하지 않아 기본 등록 정보를 보여주고 있습니다."}</p>
           {hasChannel && (
             <dl className="detail-list compact">
               {academy.officialWebsiteUrl && (
@@ -131,8 +140,7 @@ export default function AcademyDetailPage() {
           <div className="map-link-card">
             <span>{academy.region} {academy.district}</span>
             <strong>{academy.address}</strong>
-            <p>웹사이트 안에서 바로 보는 지도 기능은 추후 제공 예정입니다.</p>
-            <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">네이버 지도에서 위치 보기</a>
+            <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">네이버 지도 바로보기</a>
           </div>
         </div>
         )}
@@ -147,7 +155,7 @@ export default function AcademyDetailPage() {
             <strong>많이 언급된 키워드</strong>
             <div className="review-tags review-tags-inline">
               {insights.topKeywordCounts.length > 0 ? insights.topKeywordCounts.slice(0, 10).map((item) => (
-                <span className="review-tag review" key={item.label}>{createHashtag(item.label)} {item.count}</span>
+                <span className={`review-tag ${item.tone}`} key={item.label}>{createHashtag(item.label)} {item.count}</span>
               )) : <span className="muted">아직 충분한 키워드가 없습니다.</span>}
             </div>
           </div>

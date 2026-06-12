@@ -48,8 +48,15 @@ export default function AcademiesPage() {
     return [...filtered].sort((a, b) => {
       if (sort === "name") return a.academy.name.localeCompare(b.academy.name, "ko");
       if (sort === "reviewCount") return b.stats.reviewCount - a.stats.reviewCount || a.index - b.index;
-      if (sort === "ratingHigh") return b.stats.averageRating - a.stats.averageRating || a.index - b.index;
-      if (sort === "ratingLow") return a.stats.averageRating - b.stats.averageRating || a.index - b.index;
+      if (sort === "ratingHigh" || sort === "ratingLow") {
+        const aHasReviews = a.stats.reviewCount > 0;
+        const bHasReviews = b.stats.reviewCount > 0;
+        if (aHasReviews !== bHasReviews) return aHasReviews ? -1 : 1;
+        if (!aHasReviews && !bHasReviews) return a.index - b.index;
+        return sort === "ratingHigh"
+          ? b.stats.averageRating - a.stats.averageRating || a.index - b.index
+          : a.stats.averageRating - b.stats.averageRating || a.index - b.index;
+      }
       if (sort === "latest") {
         const aTime = a.academy.createdAt ? new Date(a.academy.createdAt).getTime() : 0;
         const bTime = b.academy.createdAt ? new Date(b.academy.createdAt).getTime() : 0;

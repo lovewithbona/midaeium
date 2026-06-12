@@ -5,7 +5,7 @@ import { DEMO_ADMIN_EMAIL, DEMO_ADMIN_PASSWORD, saveFakeUser } from "../utils/st
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState(DEMO_ADMIN_EMAIL);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -25,12 +25,7 @@ export default function LoginPage() {
       <section className="login-card">
         <p className="eyebrow">시연용 로그인</p>
         <h1>로그인</h1>
-        <p>현재는 실제 회원가입 서버가 연결되어 있지 않아 관리자 계정으로 로그인 흐름을 미리 확인할 수 있습니다.</p>
-        <div className="demo-account-box">
-          <strong>관리자 계정</strong>
-          <span>아이디: {DEMO_ADMIN_EMAIL}</span>
-          <span>비밀번호: {DEMO_ADMIN_PASSWORD}</span>
-        </div>
+        <p>현재는 학교 프로젝트용 프로토타입으로, 관리자 검수 기능은 시연용으로 제공됩니다.</p>
         <form onSubmit={handleSubmit}>
           <label>이메일<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="email@example.com" /></label>
           <label>비밀번호<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="비밀번호" /></label>

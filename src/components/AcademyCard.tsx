@@ -49,7 +49,7 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
       {academy.typeConfidence === "확인 필요" && <p className="type-note">전형 확인 필요</p>}
       <div className="card-footer">
         <span>리뷰 {reviewCount}개</span>
-        <span>평균 ♥ {averageRating ? averageRating.toFixed(1) : "0.0"}</span>
+        <span>{reviewCount > 0 ? `평균 ♥ ${averageRating.toFixed(1)}` : "아직 하트 평가가 없어요."}</span>
       </div>
     </article>
   );
