@@ -1,6 +1,6 @@
 import { academies, type Academy, type Review, type ReviewStatus } from "../data/academies";
 import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/importedReviews";
-import { getModerationStatusOverride } from "./storage";
+import { getModerationStatusOverride, getReviewAcademyMatchOverride, getReviewDetailPublicOverride } from "./storage";
 
 type MatchResult = {
   academyId: string;
@@ -39,6 +39,7 @@ export function getImportedReviewMatch(review: ImportedFormReview) {
 function convertImportedReview(review: ImportedFormReview): Review {
   const match = matchAcademy(review);
   const status = getModerationStatusOverride(review.id) || review.status;
+  const detailPublic = getReviewDetailPublicOverride(review.id) || review.detailPublic;
 
   return {
     id: review.id,
@@ -66,7 +67,7 @@ function convertImportedReview(review: ImportedFormReview): Review {
     summary: review.summary,
     detailOriginal: review.detailOriginal,
     detail: review.detail,
-    detailPublic: review.detailPublic,
+    detailPublic,
     likes: review.likes,
     pros: review.goodTags.join(", "),
     cons: review.concernTags.join(", "),
@@ -82,6 +83,11 @@ function convertImportedReview(review: ImportedFormReview): Review {
 }
 
 function matchAcademy(review: ImportedFormReview): MatchResult {
+  const overrideAcademyId = getReviewAcademyMatchOverride(review.id);
+  if (overrideAcademyId && academies.some((academy) => academy.id === overrideAcademyId)) {
+    return { academyId: overrideAcademyId, confidence: "alias" };
+  }
+
   const rawKey = normalizeName(review.academyNameRaw);
   const nameKey = normalizeName(review.academyName);
   const aliasId = academyAliases[rawKey] || academyAliases[nameKey];

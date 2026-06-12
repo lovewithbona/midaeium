@@ -4,6 +4,8 @@ const REVIEWS_KEY = "midaeieum_pending_reviews";
 const REVIEW_LIKES_KEY = "midaeieum_review_likes";
 const REVIEW_REACTIONS_KEY = "midaeieum_review_reactions";
 const REVIEW_MODERATION_KEY = "midaeieum_review_moderation_status";
+const REVIEW_ACADEMY_MATCH_KEY = "midaeieum_review_academy_match_overrides";
+const REVIEW_DETAIL_PUBLIC_KEY = "midaeieum_review_detail_public_overrides";
 const REVIEW_RESET_VERSION_KEY = "midaeieum_review_reset_version";
 const REVIEW_RESET_VERSION = "2026-06-13-clear-all-reviews";
 const USER_KEY = "midaeieum_fake_user";
@@ -20,6 +22,8 @@ export function resetReviewStorageIfNeeded() {
   localStorage.removeItem(REVIEW_LIKES_KEY);
   localStorage.removeItem(REVIEW_REACTIONS_KEY);
   localStorage.removeItem(REVIEW_MODERATION_KEY);
+  localStorage.removeItem(REVIEW_ACADEMY_MATCH_KEY);
+  localStorage.removeItem(REVIEW_DETAIL_PUBLIC_KEY);
   localStorage.setItem(REVIEW_RESET_VERSION_KEY, REVIEW_RESET_VERSION);
 }
 
@@ -105,6 +109,47 @@ export function getModerationStatusOverride(reviewId: string) {
 export function saveModerationStatus(reviewId: string, status: ReviewStatus) {
   const statuses = getModerationStatusMap();
   localStorage.setItem(REVIEW_MODERATION_KEY, JSON.stringify({ ...statuses, [reviewId]: status }));
+}
+
+export function getReviewAcademyMatchMap(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(REVIEW_ACADEMY_MATCH_KEY) || "{}") as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+export function getReviewAcademyMatchOverride(reviewId: string) {
+  return getReviewAcademyMatchMap()[reviewId];
+}
+
+export function saveReviewAcademyMatch(reviewId: string, academyId: string) {
+  const matches = getReviewAcademyMatchMap();
+  const next = { ...matches };
+  if (academyId) next[reviewId] = academyId;
+  else delete next[reviewId];
+  localStorage.setItem(REVIEW_ACADEMY_MATCH_KEY, JSON.stringify(next));
+}
+
+export function getReviewDetailPublicMap(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(REVIEW_DETAIL_PUBLIC_KEY) || "{}") as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+export function getReviewDetailPublicOverride(reviewId: string) {
+  return getReviewDetailPublicMap()[reviewId];
+}
+
+export function saveReviewDetailPublic(reviewId: string, detailPublic: string) {
+  const details = getReviewDetailPublicMap();
+  const next = { ...details };
+  const trimmed = detailPublic.trim();
+  if (trimmed) next[reviewId] = detailPublic;
+  else delete next[reviewId];
+  localStorage.setItem(REVIEW_DETAIL_PUBLIC_KEY, JSON.stringify(next));
 }
 
 export function getFakeUser() {

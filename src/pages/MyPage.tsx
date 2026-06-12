@@ -5,7 +5,7 @@ import ReviewCard from "../components/ReviewCard";
 import { academies, type ReviewStatus } from "../data/academies";
 import type { Review } from "../data/academies";
 import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
-import { clearFakeUser, getFakeUser, saveModerationStatus } from "../utils/storage";
+import { clearFakeUser, getFakeUser, saveModerationStatus, saveReviewAcademyMatch, saveReviewDetailPublic } from "../utils/storage";
 
 const moderationSections: { status: ReviewStatus; title: string; description: string }[] = [
   { status: "pending", title: "검토 대기", description: "아직 공개 여부를 결정하지 않은 리뷰입니다." },
@@ -36,6 +36,16 @@ export default function MyPage() {
 
   function updateReviewStatus(reviewId: string, status: ReviewStatus) {
     saveModerationStatus(reviewId, status);
+    setModerationTick((value) => value + 1);
+  }
+
+  function updateReviewAcademyMatch(reviewId: string, academyId: string) {
+    saveReviewAcademyMatch(reviewId, academyId);
+    setModerationTick((value) => value + 1);
+  }
+
+  function updateReviewDetailPublic(reviewId: string, detailPublic: string) {
+    saveReviewDetailPublic(reviewId, detailPublic);
     setModerationTick((value) => value + 1);
   }
 
@@ -111,6 +121,8 @@ export default function MyPage() {
                 description={section.description}
                 reviews={section.status === "hidden" ? hiddenReviews : getReviewsByStatus(reviewCandidates, section.status)}
                 onChangeStatus={updateReviewStatus}
+                onChangeAcademyMatch={updateReviewAcademyMatch}
+                onSaveDetailPublic={updateReviewDetailPublic}
               />
             ))}
           </div>
@@ -126,12 +138,14 @@ export default function MyPage() {
   );
 }
 
-function AdminModerationSection({ status, title, description, reviews, onChangeStatus }: {
+function AdminModerationSection({ status, title, description, reviews, onChangeStatus, onChangeAcademyMatch, onSaveDetailPublic }: {
   status: ReviewStatus;
   title: string;
   description: string;
   reviews: Review[];
   onChangeStatus: (reviewId: string, status: ReviewStatus) => void;
+  onChangeAcademyMatch: (reviewId: string, academyId: string) => void;
+  onSaveDetailPublic: (reviewId: string, detailPublic: string) => void;
 }) {
   return (
     <section className="admin-status-section">
@@ -145,62 +159,112 @@ function AdminModerationSection({ status, title, description, reviews, onChangeS
       {reviews.length > 0 ? (
         <div className="admin-review-list">
           {reviews.map((review) => (
-            <article className={`admin-review-item ${review.moderationFlags?.length ? "flagged" : ""}`} key={review.id}>
-              <div className="admin-review-meta">
-                <div>
-                  <strong>{review.academyNameRaw || review.academyName}</strong>
-                  <p className="muted">
-                    {review.source === "google-form" ? `구글폼 ${review.sourceRow}행` : "사이트 등록 리뷰"} · 상태 {getStatusLabel(review.status)}
-                  </p>
-                  <p className="muted">{getMatchedAcademyLabel(review.academyId)}</p>
-                </div>
-                {review.moderationFlags && review.moderationFlags.length > 0 && (
-                  <div className="moderation-flags" aria-label="검수 주의 플래그">
-                    {review.moderationFlags.map((flag) => <span key={flag}>{flag}</span>)}
-                  </div>
-                )}
-              </div>
-              <div className="admin-review-facts">
-                <span>학원명: {review.academyName}</span>
-                {review.writerStatus && <span>작성자: {review.writerStatus}</span>}
-                {review.attendedYear && <span>다닌 년도: {review.attendedYear}</span>}
-                {review.attendedPeriod && <span>다닌 기간: {review.attendedPeriod}</span>}
-                {review.admissionResult && <span>합격 여부: {review.admissionResult}</span>}
-                {review.rating > 0 && <span>만족도: {review.rating}/5</span>}
-                {review.atmosphere && <span>분위기: {review.atmosphere}</span>}
-                {review.homeworkLoad && <span>과제량: {review.homeworkLoad}</span>}
-                {review.classLevel && <span>난이도: {review.classLevel}</span>}
-              </div>
-              {review.reviewSchoolTags && review.reviewSchoolTags.length > 0 && (
-                <div className="admin-review-tags">
-                  <b>주요 대비 대학</b>
-                  <p>{review.reviewSchoolTags.join(", ")}</p>
-                </div>
-              )}
-              {review.schoolTextRaw && (
-                <div className="raw-note">
-                  <b>강점 학교 원문</b>
-                  <p>{review.schoolTextRaw}</p>
-                </div>
-              )}
-              <div className="raw-note">
-                <b>자세한 후기 원문</b>
-                <p>{review.detailOriginal || getReviewDisplayDetail(review) || "원문이 없습니다."}</p>
-              </div>
-              <ReviewCard review={review} />
-              <div className="moderation-actions">
-                <button type="button" className="primary-button" onClick={() => onChangeStatus(review.id, "public")} disabled={status === "public"}>공개 처리</button>
-                <button type="button" className="secondary-button" onClick={() => onChangeStatus(review.id, "held")} disabled={status === "held"}>보류 처리</button>
-                <button type="button" className="secondary-button" onClick={() => onChangeStatus(review.id, "pending")} disabled={status === "pending"}>검토 대기</button>
-                <button type="button" className="secondary-button danger-button" onClick={() => onChangeStatus(review.id, "hidden")} disabled={status === "hidden"}>제외 처리</button>
-              </div>
-            </article>
+            <AdminReviewItem
+              key={review.id}
+              review={review}
+              status={status}
+              onChangeStatus={onChangeStatus}
+              onChangeAcademyMatch={onChangeAcademyMatch}
+              onSaveDetailPublic={onSaveDetailPublic}
+            />
           ))}
         </div>
       ) : (
         <p className="admin-empty-text">해당 상태의 리뷰가 없습니다.</p>
       )}
     </section>
+  );
+}
+
+function AdminReviewItem({ review, status, onChangeStatus, onChangeAcademyMatch, onSaveDetailPublic }: {
+  review: Review;
+  status: ReviewStatus;
+  onChangeStatus: (reviewId: string, status: ReviewStatus) => void;
+  onChangeAcademyMatch: (reviewId: string, academyId: string) => void;
+  onSaveDetailPublic: (reviewId: string, detailPublic: string) => void;
+}) {
+  const [detailPublicDraft, setDetailPublicDraft] = useState(review.detailPublic || "");
+  const matchedAcademyId = review.academyId.startsWith("unmatched-") ? "" : review.academyId;
+
+  return (
+    <article className={`admin-review-item ${review.moderationFlags?.length ? "flagged" : ""}`}>
+      <div className="admin-review-meta">
+        <div>
+          <strong>{review.academyNameRaw || review.academyName}</strong>
+          <p className="muted">
+            {review.source === "google-form" ? `구글폼 ${review.sourceRow}행` : "사이트 등록 리뷰"} · 상태 {getStatusLabel(review.status)}
+          </p>
+          <p className="muted">{getMatchedAcademyLabel(review.academyId)}</p>
+        </div>
+        {review.moderationFlags && review.moderationFlags.length > 0 && (
+          <div className="moderation-flags" aria-label="검수 주의 플래그">
+            {review.moderationFlags.map((flag) => <span key={flag}>{flag}</span>)}
+          </div>
+        )}
+      </div>
+      <div className="admin-edit-grid">
+        <label>
+          매칭 학원 수정
+          <select value={matchedAcademyId} onChange={(event) => onChangeAcademyMatch(review.id, event.target.value)}>
+            <option value="">매칭 학원 선택</option>
+            {academies.map((academy) => (
+              <option value={academy.id} key={academy.id}>{academy.name} · {academy.region} {academy.district}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          공개용 후기 수정
+          <textarea value={detailPublicDraft} onChange={(event) => setDetailPublicDraft(event.target.value)} placeholder="비워두면 원문을 그대로 사용합니다." />
+        </label>
+        <div className="moderation-actions admin-edit-actions">
+          <button type="button" className="secondary-button" onClick={() => onSaveDetailPublic(review.id, detailPublicDraft)}>공개용 후기 저장</button>
+          <button type="button" className="secondary-button" onClick={() => {
+            setDetailPublicDraft("");
+            onSaveDetailPublic(review.id, "");
+          }}>수정본 비우기</button>
+        </div>
+      </div>
+      <div className="admin-review-facts">
+        <span>학원명: {review.academyName}</span>
+        {review.writerStatus && <span>작성자: {review.writerStatus}</span>}
+        {review.attendedYear && <span>다닌 년도: {review.attendedYear}</span>}
+        {review.attendedPeriod && <span>다닌 기간: {review.attendedPeriod}</span>}
+        {review.admissionResult && <span>합격 여부: {review.admissionResult}</span>}
+        {review.rating > 0 && <span>만족도: {review.rating}/5</span>}
+        {review.atmosphere && <span>분위기: {review.atmosphere}</span>}
+        {review.homeworkLoad && <span>과제량: {review.homeworkLoad}</span>}
+        {review.classLevel && <span>난이도: {review.classLevel}</span>}
+      </div>
+      {review.reviewSchoolTags && review.reviewSchoolTags.length > 0 && (
+        <div className="admin-review-tags">
+          <b>주요 대비 대학</b>
+          <p>{review.reviewSchoolTags.join(", ")}</p>
+        </div>
+      )}
+      {review.schoolTextRaw && (
+        <div className="raw-note">
+          <b>강점 학교 원문</b>
+          <p>{review.schoolTextRaw}</p>
+        </div>
+      )}
+      <div className="raw-note">
+        <b>자세한 후기 원문</b>
+        <p>{review.detailOriginal || getReviewDisplayDetail(review) || "원문이 없습니다."}</p>
+      </div>
+      {review.detailPublic && (
+        <div className="raw-note public-note">
+          <b>공개용 수정본</b>
+          <p>{review.detailPublic}</p>
+        </div>
+      )}
+      <ReviewCard review={review} />
+      <div className="moderation-actions">
+        <button type="button" className="primary-button" onClick={() => onChangeStatus(review.id, "public")} disabled={status === "public"}>공개 처리</button>
+        <button type="button" className="secondary-button" onClick={() => onChangeStatus(review.id, "held")} disabled={status === "held"}>보류 처리</button>
+        <button type="button" className="secondary-button" onClick={() => onChangeStatus(review.id, "pending")} disabled={status === "pending"}>검토 대기</button>
+        <button type="button" className="secondary-button danger-button" onClick={() => onChangeStatus(review.id, "hidden")} disabled={status === "hidden"}>제외 처리</button>
+      </div>
+    </article>
   );
 }
 

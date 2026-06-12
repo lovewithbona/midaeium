@@ -2001,6 +2001,48 @@ input::placeholder {
   gap: 6px;
 }
 
+.admin-edit-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #fafafa;
+}
+
+.admin-edit-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.admin-edit-grid select,
+.admin-edit-grid textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.admin-edit-grid select {
+  min-height: 38px;
+  padding: 0 10px;
+}
+
+.admin-edit-grid textarea {
+  min-height: 92px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.admin-edit-actions {
+  grid-column: 1 / -1;
+}
+
 .admin-review-facts span {
   padding: 4px 7px;
   border: 1px solid var(--line);
@@ -2047,6 +2089,11 @@ input::placeholder {
   padding: 10px 12px;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.public-note {
+  border-color: #cfe0ff;
+  background: #f6f9ff;
 }
 
 .raw-note b {
