@@ -15,6 +15,7 @@ const cautionTagOptions = ["스스로 질문해야 놓치지 않음", "멘탈 �
 const statuses = ["고3", "N수생", "대학생", "학부모"];
 const experienceTypes = ["", "실제 수강", "상담만 받음"];
 const admissionResults = ["", "합격", "불합격"];
+const schoolTagOptions = ["국민대", "건국대", "홍익대", "서울과기대", "이화여대", "숙명여대", "성신여대", "중앙대", "경희대", "한예종", "기타"];
 const MIN_DETAIL_LENGTH = 100;
 
 export default function ReviewNewPage() {
@@ -28,6 +29,7 @@ export default function ReviewNewPage() {
   const [concernTags, setConcernTags] = useState<string[]>([]);
   const [cautionTags, setCautionTags] = useState<string[]>([]);
   const [feedbackTags, setFeedbackTags] = useState<string[]>([]);
+  const [reviewSchoolTags, setReviewSchoolTags] = useState<string[]>([]);
   const [rating, setRating] = useState(0);
   const [form, setForm] = useState({
     newName: "",
@@ -36,6 +38,7 @@ export default function ReviewNewPage() {
     atmosphere: "진지한 편이에요",
     homeworkLoad: "적당해요",
     classLevel: "기본기가 있으면 좋아요",
+    summary: "",
     detail: "",
     writerStatus: "고3",
     contactMethod: "이메일",
@@ -83,7 +86,7 @@ export default function ReviewNewPage() {
     const academyName = isNewAcademy ? form.newName.trim() : selectedAcademy?.name || "";
     const targetAcademyId = isNewAcademy ? `new-${Date.now()}` : academyId;
 
-    if (!academyName || preparedTypes.length === 0 || strongTypes.length === 0 || rating === 0 || feedbackTags.length === 0 || goodTags.length === 0 || concernTags.length === 0 || !form.writerStatus || !form.contact.trim()) {
+    if (!academyName || preparedTypes.length === 0 || strongTypes.length === 0 || rating === 0 || feedbackTags.length === 0 || goodTags.length === 0 || concernTags.length === 0 || !form.summary.trim() || !form.writerStatus || !form.contact.trim()) {
       alert("필수 내용을 모두 입력해 주세요.");
       return;
     }
@@ -110,6 +113,7 @@ export default function ReviewNewPage() {
       writerStatus: form.writerStatus,
       preparedTypes,
       strongTypes,
+      reviewSchoolTags,
       atmosphere: form.atmosphere,
       feedbackStyle: feedbackTags.join(", "),
       feedbackTags,
@@ -118,7 +122,7 @@ export default function ReviewNewPage() {
       goodTags,
       concernTags,
       cautionTags,
-      summary: form.detail.trim().slice(0, 80),
+      summary: form.summary.trim(),
       detail: form.detail,
       contactMethod: form.contactMethod,
       contact: form.contact,
@@ -253,6 +257,14 @@ export default function ReviewNewPage() {
                 ))}
               </div>
             </div>
+            <div className="review-field-block">
+              <span className="field-title">주요 대비 대학</span>
+              <div className="chip-row no-label">
+                {schoolTagOptions.map((school) => (
+                  <button type="button" key={school} className={`chip ${reviewSchoolTags.includes(school) ? "active" : ""}`} onClick={() => toggleListValue(school, setReviewSchoolTags)}>{school}</button>
+                ))}
+              </div>
+            </div>
           </details>
           <div className="review-choice-card review-choice-feedback">
             <span className="field-title">피드백 스타일</span>
@@ -287,6 +299,7 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="form-grid">
+            <label className="wide">한 줄 후기<input value={form.summary} onChange={(event) => updateField("summary", event.target.value)} placeholder="예: 피드백이 자세해서 방향을 잡는 데 도움이 됐어요." /></label>
             <label className="wide">자세한 후기<textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업을 들으며 실제로 느낀 분위기, 좋았던 점, 조심해야 할 점을 구체적으로 적어 주세요." /><small>{form.detail.trim().length}/{MIN_DETAIL_LENGTH}자 이상</small></label>
           </div>
         </section>
@@ -334,7 +347,7 @@ export default function ReviewNewPage() {
         <div className="review-disclosure-box">
           <div>
             <strong>공개되는 정보:</strong>
-            <p>익명, 작성자 상태, 준비 전형, 수업 분위기, 선택한 태그, 작성한 리뷰</p>
+            <p>익명, 작성자 상태, 준비 전형, 주요 대비 대학, 수업 분위기, 선택한 태그, 작성한 리뷰</p>
           </div>
           <div>
             <strong>공개되지 않는 정보:</strong>

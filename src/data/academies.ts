@@ -23,6 +23,14 @@ export type EntranceType =
   | "예중·예고";
 
 export type TypeConfidence = "공식 확인" | "보조 출처 확인" | "이름 기반 1차 분류" | "확인 필요";
+export type SchoolTagCategory = "디자인" | "회화" | "조소" | "만화·애니" | "예중·예고" | "유학미술" | "미대편입" | "기타";
+export type SchoolTagSource = "운영자 입력" | "리뷰 기반" | "확인 필요";
+
+export type SchoolTag = {
+  schoolName: string;
+  category: SchoolTagCategory;
+  source: SchoolTagSource;
+};
 
 export type AcademySeedWithTypes = {
   id: string;
@@ -41,12 +49,15 @@ export type AcademySeedWithTypes = {
   typeSourceUrl: string | null;
   typeConfidence: TypeConfidence;
   typeMemo: string;
+  createdAt?: string;
+  schoolTags?: SchoolTag[];
 };
 
 export type AcademyWithChannels = AcademySeedWithTypes & {
   officialWebsiteUrl: string | null;
   instagramUrl: string | null;
   naverBlogUrl: string | null;
+  schoolTags: SchoolTag[];
   channelConfidence: AcademyChannelConfidence;
   channelMemo: string;
   channelSourceUrls: string[];
@@ -2659,6 +2670,7 @@ export function applyAcademyChannelOverrides(items: AcademySeedWithTypes[]): Aca
 
     return {
       ...academy,
+      schoolTags: academy.schoolTags ?? [],
       officialWebsiteUrl: override?.officialWebsiteUrl ?? baseChannels.officialWebsiteUrl,
       instagramUrl: override?.instagramUrl ?? baseChannels.instagramUrl,
       naverBlogUrl: override?.naverBlogUrl ?? baseChannels.naverBlogUrl,
@@ -2712,10 +2724,12 @@ export type Review = {
   writerStatus: string;
   preparedTypes: string[];
   strongTypes: string[];
+  reviewSchoolTags?: string[];
   atmosphere: string;
   rating: number;
   feedbackStyle?: string;
   feedbackTags?: string[];
+  teachingStyleTags?: string[];
   homeworkLoad?: string;
   classLevel?: string;
   goodTags?: string[];

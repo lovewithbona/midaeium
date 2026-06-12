@@ -6,10 +6,11 @@ type SearchBarProps = {
   initialRegion?: string;
   initialType?: string;
   initialKeyword?: string;
+  buttonLabel?: string;
   onSearch?: (filters: { region: string; type: string; keyword: string }) => void;
 };
 
-export default function SearchBar({ initialRegion = "전체", initialType = "전체", initialKeyword = "", onSearch }: SearchBarProps) {
+export default function SearchBar({ initialRegion = "전체", initialType = "전체", initialKeyword = "", buttonLabel = "검색", onSearch }: SearchBarProps) {
   const navigate = useNavigate();
   const [region, setRegion] = useState(initialRegion);
   const [type, setType] = useState(initialType);
@@ -53,8 +54,8 @@ export default function SearchBar({ initialRegion = "전체", initialType = "전
         <span>학원 이름</span>
         <input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="예: 강남 베테랑미술학원" aria-label="학원 이름" />
       </label>
-      <button type="submit" aria-label="검색">
-        검색
+      <button type="submit" aria-label={buttonLabel}>
+        {buttonLabel}
       </button>
     </form>
   );
