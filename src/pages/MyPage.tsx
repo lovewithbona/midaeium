@@ -1,18 +1,31 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
-import { academies } from "../data/academies";
-import { clearFakeUser, getFakeUser, getStoredReviews } from "../utils/storage";
+import { academies, type ReviewStatus } from "../data/academies";
+import { getAllReviews } from "../utils/reviewStats";
+import { clearFakeUser, getFakeUser, saveModerationStatus } from "../utils/storage";
 
 export default function MyPage() {
   const navigate = useNavigate();
   const user = getFakeUser();
-  const storedReviews = getStoredReviews();
-  const pendingReviews = storedReviews.filter((review) => review.status === "pending");
+  const [, setModerationTick] = useState(0);
+  const reviewCandidates = getAllReviews({ includePending: true })
+    .filter((review) => review.source === "google-form" || review.status !== "public")
+    .sort((a, b) => {
+      const statusOrder = { pending: 0, public: 1, hidden: 2, rejected: 3 };
+      return statusOrder[a.status] - statusOrder[b.status] || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  const pendingReviews = reviewCandidates.filter((review) => review.status === "pending");
 
   function handleLogout() {
     clearFakeUser();
     navigate("/login");
+  }
+
+  function updateReviewStatus(reviewId: string, status: ReviewStatus) {
+    saveModerationStatus(reviewId, status);
+    setModerationTick((value) => value + 1);
   }
 
   if (!user) {
@@ -33,7 +46,7 @@ export default function MyPage() {
         <div>
           <p className="eyebrow">관리자 마이페이지</p>
           <h1>리뷰 검수 현황</h1>
-          <p>아직 서버가 연결되지 않은 상태라 이 브라우저에 저장된 리뷰를 기준으로 보여줍니다.</p>
+          <p>구글폼 정리본과 이 브라우저에 저장된 리뷰를 함께 검수합니다.</p>
         </div>
         <button className="secondary-button" type="button" onClick={handleLogout}>로그아웃</button>
       </section>
@@ -61,9 +74,38 @@ export default function MyPage() {
           </div>
           <Link className="secondary-button" to="/review/new">리뷰 등록 테스트</Link>
         </div>
-        {pendingReviews.length > 0 ? (
-          <div className="review-list">
-            {pendingReviews.map((review) => <ReviewCard key={review.id} review={review} />)}
+        {reviewCandidates.length > 0 ? (
+          <div className="admin-review-list">
+            {reviewCandidates.map((review) => (
+              <article className={`admin-review-item ${review.moderationFlags?.length ? "flagged" : ""}`} key={review.id}>
+                <div className="admin-review-meta">
+                  <div>
+                    <strong>{review.academyNameRaw || review.academyName}</strong>
+                    <p className="muted">
+                      {review.source === "google-form" ? `구글폼 ${review.sourceRow}행` : "사이트 등록 리뷰"} · 상태 {getStatusLabel(review.status)}
+                    </p>
+                    <p className="muted">{getMatchedAcademyLabel(review.academyId)}</p>
+                  </div>
+                  {review.moderationFlags && review.moderationFlags.length > 0 && (
+                    <div className="moderation-flags" aria-label="검수 주의 플래그">
+                      {review.moderationFlags.map((flag) => <span key={flag}>{flag}</span>)}
+                    </div>
+                  )}
+                </div>
+                {review.schoolTextRaw && (
+                  <div className="raw-note">
+                    <b>강점 학교 원문</b>
+                    <p>{review.schoolTextRaw}</p>
+                  </div>
+                )}
+                <ReviewCard review={review} />
+                <div className="moderation-actions">
+                  <button type="button" className="primary-button" onClick={() => updateReviewStatus(review.id, "public")}>공개 처리</button>
+                  <button type="button" className="secondary-button" onClick={() => updateReviewStatus(review.id, "pending")}>보류 처리</button>
+                  <button type="button" className="secondary-button danger-button" onClick={() => updateReviewStatus(review.id, "hidden")}>제외 처리</button>
+                </div>
+              </article>
+            ))}
           </div>
         ) : (
           <div className="empty-state compact-empty">
@@ -75,4 +117,16 @@ export default function MyPage() {
       </section>
     </PageLayout>
   );
+}
+
+function getStatusLabel(status: ReviewStatus) {
+  if (status === "public") return "공개";
+  if (status === "hidden" || status === "rejected") return "제외";
+  return "검수 대기";
+}
+
+function getMatchedAcademyLabel(academyId: string) {
+  if (academyId.startsWith("unmatched-")) return "매칭 학원: 확인 필요";
+  const academy = academies.find((item) => item.id === academyId);
+  return academy ? `매칭 학원: ${academy.name}` : "매칭 학원: 확인 필요";
 }

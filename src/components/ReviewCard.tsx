@@ -5,7 +5,7 @@ import { createHashtag, getReviewPreview, type KeywordTone } from "../utils/revi
 
 export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
   const preview = getReviewPreview(review, 90);
-  const tagGroups = getReviewTagGroups(review);
+  const hashtags = getReviewTagItems(review).slice(0, 10);
   const [reactionState, setReactionState] = useState(() => ({
     empathy: {
       active: hasReactedToReview(review.id, "empathy"),
@@ -35,8 +35,9 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   return (
     <article className="review-card">
       <div className="review-head">
-        <strong>{review.writerStatus || "작성자"}</strong>
+        <strong>익명 · {review.writerStatus || "작성자"}</strong>
         {review.status === "pending" && <span className="status-pill">검토 대기</span>}
+        {(review.status === "rejected" || review.status === "hidden") && <span className="status-pill muted-pill">제외됨</span>}
       </div>
       <div className="heart-readout" aria-label={`만족도 ${review.rating || 0}점`}>
         {Array.from({ length: 5 }).map((_, index) => (
@@ -50,14 +51,11 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       </div>
       {preview && <p className="review-summary">“{preview}”</p>}
       <div className="review-body">
-        {tagGroups.map((group) => (
-          <div className="review-tag-question" key={group.title}>
-            <b>{group.title}</b>
-            <div className="review-tags">
-              {group.items.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${group.title}-${tag.label}`}>{tag.label}</span>)}
-            </div>
+        {hashtags.length > 0 && (
+          <div className="review-tags review-tags-inline">
+            {hashtags.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${tag.tone}-${tag.label}`}>{tag.label}</span>)}
           </div>
-        ))}
+        )}
         {review.detail && (
           <div className="review-detail-preview">
             <b>자세한 후기</b>
@@ -92,18 +90,13 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   );
 }
 
-function getReviewTagGroups(review: Review) {
+function getReviewTagItems(review: Review) {
   return [
-    { title: "피드백 스타일", labels: review.feedbackTags || [], tone: "feedback" },
-    { title: "좋았던 점", labels: review.goodTags || [], tone: "positive" },
-    { title: "아쉬웠던 점", labels: review.concernTags || [], tone: "negative" },
-    { title: "주의할 점", labels: review.cautionTags || [], tone: "caution" },
-  ]
-    .map((group) => ({
-      title: group.title,
-      items: uniqueTags(group.labels, group.tone as KeywordTone | "feedback" | "caution"),
-    }))
-    .filter((group) => group.items.length > 0);
+    ...uniqueTags(review.feedbackTags || [], "feedback"),
+    ...uniqueTags(review.goodTags || [], "positive"),
+    ...uniqueTags(review.concernTags || [], "negative"),
+    ...uniqueTags(review.cautionTags || [], "caution"),
+  ];
 }
 
 function uniqueTags(labels: string[], tone: KeywordTone | "feedback" | "caution") {

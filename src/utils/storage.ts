@@ -1,8 +1,9 @@
-import type { Review } from "../data/academies";
+import type { Review, ReviewStatus } from "../data/academies";
 
 const REVIEWS_KEY = "midaeieum_pending_reviews";
 const REVIEW_LIKES_KEY = "midaeieum_review_likes";
 const REVIEW_REACTIONS_KEY = "midaeieum_review_reactions";
+const REVIEW_MODERATION_KEY = "midaeieum_review_moderation_status";
 const USER_KEY = "midaeieum_fake_user";
 export type ReviewReactionType = "empathy" | "helpful";
 
@@ -74,6 +75,23 @@ export function addReviewReaction(reviewId: string, type: ReviewReactionType) {
     },
   }));
   return true;
+}
+
+export function getModerationStatusMap(): Record<string, ReviewStatus> {
+  try {
+    return JSON.parse(localStorage.getItem(REVIEW_MODERATION_KEY) || "{}") as Record<string, ReviewStatus>;
+  } catch {
+    return {};
+  }
+}
+
+export function getModerationStatusOverride(reviewId: string) {
+  return getModerationStatusMap()[reviewId];
+}
+
+export function saveModerationStatus(reviewId: string, status: ReviewStatus) {
+  const statuses = getModerationStatusMap();
+  localStorage.setItem(REVIEW_MODERATION_KEY, JSON.stringify({ ...statuses, [reviewId]: status }));
 }
 
 export function getFakeUser() {

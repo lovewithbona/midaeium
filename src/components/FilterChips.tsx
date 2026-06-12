@@ -10,11 +10,13 @@ export default function FilterChips({ label, items, value, onChange, tone = "reg
   return (
     <div className={`chip-row chip-row-${tone}`}>
       <span className="chip-label">{label}</span>
-      {items.map((item) => (
-        <button key={item} className={`chip ${value === item ? "active" : ""}`} onClick={() => onChange(item)} type="button">
-          {item}
-        </button>
-      ))}
+      <div className="chip-options">
+        {items.map((item) => (
+          <button key={item} className={`chip ${value === item ? "active" : ""}`} onClick={() => onChange(item)} type="button">
+            {item}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

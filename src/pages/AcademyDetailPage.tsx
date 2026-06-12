@@ -73,13 +73,12 @@ export default function AcademyDetailPage() {
         </div>
         <Link className="primary-button" to="/review/new">리뷰 등록하기</Link>
       </section>
-      <div className="detail-tabs" role="tablist" aria-label="학원 상세 보기">
+      <div className="detail-tabs" aria-label="학원 상세 보기">
         <button
           type="button"
           className={activeTab === "info" ? "active" : ""}
           onClick={() => setParams({})}
-          role="tab"
-          aria-selected={activeTab === "info"}
+          aria-pressed={activeTab === "info"}
         >
           학원 정보
         </button>
@@ -87,8 +86,7 @@ export default function AcademyDetailPage() {
           type="button"
           className={activeTab === "reviews" ? "active" : ""}
           onClick={() => setParams({ tab: "reviews" })}
-          role="tab"
-          aria-selected={activeTab === "reviews"}
+          aria-pressed={activeTab === "reviews"}
         >
           리뷰 {reviewCount}개
         </button>

@@ -1,10 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { type Academy } from "../data/academies";
 import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getReviewPreview } from "../utils/reviewStats";
 
 export default function AcademyCard({ academy }: { academy: Academy }) {
-  const navigate = useNavigate();
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
   const insights = getAcademyAggregatedInsights(academy.id);
   const strongTypes = insights.strongTypeCounts.length > 0 ? insights.strongTypeCounts.map((item) => item.label) : academy.strongTypes;
@@ -14,19 +13,10 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
   const detailUrl = `/academies/${academy.id}`;
   const displayName = getAcademyDisplayName(academy);
 
-  function openDetail() {
-    navigate(detailUrl);
-  }
-
   return (
-    <article
+    <Link
       className="academy-card"
-      onClick={openDetail}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") openDetail();
-      }}
-      role="link"
-      tabIndex={0}
+      to={detailUrl}
       aria-label={`${displayName} 상세 보기`}
     >
       <div className="card-top">
@@ -53,7 +43,7 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
         <span>리뷰 {reviewCount}개</span>
         <span>{reviewCount > 0 ? `평균 ♥ ${averageRating.toFixed(1)}` : "아직 하트 평가가 없어요."}</span>
       </div>
-    </article>
+    </Link>
   );
 }
 

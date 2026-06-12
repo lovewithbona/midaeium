@@ -52,6 +52,8 @@ export default function ReviewNewPage() {
     directExperience: false,
     falseReviewNotice: false,
   });
+  const [formError, setFormError] = useState<{ key: string; message: string } | null>(null);
+  const detailLength = form.detail.trim().length;
 
   const filteredAcademies = useMemo(() => {
     const trimmed = keyword.trim();
@@ -81,12 +83,13 @@ export default function ReviewNewPage() {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    setFormError(null);
     const selectedAcademy = academies.find((academy) => academy.id === academyId);
     const academyName = isNewAcademy ? form.newName.trim() : selectedAcademy?.name || "";
     const targetAcademyId = isNewAcademy ? `new-${Date.now()}` : academyId;
 
     if (isNewAcademy && (!form.newName.trim() || !form.newAddress.trim())) {
-      alert(!form.newName.trim() ? "새 학원명 항목 입력이 안 됐어요." : "새 학원 주소 항목 입력이 안 됐어요.");
+      showFormError(!form.newName.trim() ? "newName" : "newAddress", !form.newName.trim() ? "새 학원명 항목 입력이 안 됐어요." : "새 학원 주소 항목 입력이 안 됐어요.");
       return;
     }
 
@@ -106,12 +109,12 @@ export default function ReviewNewPage() {
     });
 
     if (missingMessage) {
-      alert(missingMessage);
+      showFormError(missingMessage.key, missingMessage.message);
       return;
     }
 
-    if (form.detail.trim().length < MIN_DETAIL_LENGTH) {
-      alert(`자세한 후기는 최소 ${MIN_DETAIL_LENGTH}자 이상 작성해 주세요.`);
+    if (detailLength < MIN_DETAIL_LENGTH) {
+      showFormError("detail", `자세한 후기는 최소 ${MIN_DETAIL_LENGTH}자 이상 작성해 주세요.`);
       return;
     }
 
@@ -152,6 +155,13 @@ export default function ReviewNewPage() {
     setDone(true);
   }
 
+  function showFormError(key: string, message: string) {
+    setFormError({ key, message });
+    window.setTimeout(() => {
+      document.querySelector(`[data-error-key="${key}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+  }
+
   if (done) {
     return (
       <PageLayout>
@@ -184,7 +194,8 @@ export default function ReviewNewPage() {
       </div>
       <form className="review-form" onSubmit={handleSubmit}>
         <section className="form-section">
-          <h2>학원 선택 <RequiredMark /></h2>
+          <h2 data-error-key="academy">학원 선택 <RequiredMark /></h2>
+          <ErrorMessage formError={formError} targetKeys={["academy", "newName", "newAddress"]} />
           {!isNewAcademy ? (
             <div className="choice-toolbar">
               <label>
@@ -220,9 +231,9 @@ export default function ReviewNewPage() {
           )}
           {isNewAcademy && (
             <div className="form-grid">
-              <label>학원명 <RequiredMark /><input value={form.newName} onChange={(event) => updateField("newName", event.target.value)} /></label>
+              <label data-error-key="newName">학원명 <RequiredMark /><input value={form.newName} onChange={(event) => updateField("newName", event.target.value)} /></label>
               <label>지역<select value={form.newRegion} onChange={(event) => updateField("newRegion", event.target.value)}>{regions.filter((region) => region !== "전체").map((region) => <option key={region}>{region}</option>)}</select></label>
-              <label className="wide">주소 <RequiredMark /><input value={form.newAddress} onChange={(event) => updateField("newAddress", event.target.value)} /></label>
+              <label className="wide" data-error-key="newAddress">주소 <RequiredMark /><input value={form.newAddress} onChange={(event) => updateField("newAddress", event.target.value)} /></label>
             </div>
           )}
         </section>
@@ -231,7 +242,8 @@ export default function ReviewNewPage() {
           <h2>리뷰 작성</h2>
           <div className="review-step-grid">
             <div className="review-field-block rating-field">
-              <span className="field-title">만족도 <RequiredMark /></span>
+              <span className="field-title" data-error-key="rating">만족도 <RequiredMark /></span>
+              <ErrorMessage formError={formError} targetKeys={["rating"]} />
               <div className="heart-rating" role="radiogroup" aria-label="만족도">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button type="button" key={value} className={value <= rating ? "active" : ""} onClick={() => setRating(value)} aria-label={`${value}점`}>
@@ -250,7 +262,8 @@ export default function ReviewNewPage() {
           <details className="review-details">
             <summary>전형 선택</summary>
             <div className="review-field-block">
-              <span className="field-title">준비 가능 전형 <RequiredMark /></span>
+              <span className="field-title" data-error-key="preparedTypes">준비 가능 전형 <RequiredMark /></span>
+              <ErrorMessage formError={formError} targetKeys={["preparedTypes"]} />
               <div className="chip-row no-label">
                 {types.map((type) => (
                   <button type="button" key={type} className={`chip ${preparedTypes.includes(type) ? "active" : ""}`} onClick={() => toggleType(type)}>{type}</button>
@@ -258,7 +271,8 @@ export default function ReviewNewPage() {
               </div>
             </div>
             <div className="review-field-block">
-              <span className="field-title">강점 전형 <RequiredMark /></span>
+              <span className="field-title" data-error-key="strongTypes">강점 전형 <RequiredMark /></span>
+              <ErrorMessage formError={formError} targetKeys={["strongTypes"]} />
               <div className="chip-row no-label">
                 {types.map((type) => (
                   <button type="button" key={type} className={`chip ${strongTypes.includes(type) ? "active" : ""}`} onClick={() => toggleStrongType(type)}>{type}</button>
@@ -275,7 +289,8 @@ export default function ReviewNewPage() {
             </div>
           </details>
           <div className="review-choice-card review-choice-feedback">
-            <span className="field-title">피드백 스타일 <RequiredMark /></span>
+            <span className="field-title" data-error-key="feedbackTags">피드백 스타일 <RequiredMark /></span>
+            <ErrorMessage formError={formError} targetKeys={["feedbackTags"]} />
             <div className="chip-row no-label chip-row-feedback">
               {feedbackStyles.map((tag) => (
                 <button type="button" key={tag} className={`chip ${feedbackTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setFeedbackTags)}>{tag}</button>
@@ -283,7 +298,8 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="review-choice-card review-choice-positive">
-            <span className="field-title">좋았던 점 <RequiredMark /></span>
+            <span className="field-title" data-error-key="goodTags">좋았던 점 <RequiredMark /></span>
+            <ErrorMessage formError={formError} targetKeys={["goodTags"]} />
             <div className="chip-row no-label chip-row-positive">
               {goodTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${goodTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setGoodTags)}>{tag}</button>
@@ -291,7 +307,8 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="review-choice-card review-choice-concern">
-            <span className="field-title">아쉬웠던 점 <RequiredMark /></span>
+            <span className="field-title" data-error-key="concernTags">아쉬웠던 점 <RequiredMark /></span>
+            <ErrorMessage formError={formError} targetKeys={["concernTags"]} />
             <div className="chip-row no-label chip-row-concern">
               {concernTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${concernTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setConcernTags)}>{tag}</button>
@@ -307,8 +324,8 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="form-grid">
-            <label className="wide">한 줄 후기 <RequiredMark /><input value={form.summary} onChange={(event) => updateField("summary", event.target.value)} placeholder="예: 피드백은 자세했지만 과제량이 많아서 시간 관리가 필요했어요." /></label>
-            <label className="wide">자세한 후기 <RequiredMark /><textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업 분위기, 좋았던 점, 아쉬웠던 점, 어떤 학생에게 추천하는지 적어 주세요." /><small>{form.detail.trim().length}/{MIN_DETAIL_LENGTH}자 이상</small></label>
+            <label className="wide" data-error-key="summary">한 줄 후기 <RequiredMark /><input value={form.summary} onChange={(event) => updateField("summary", event.target.value)} placeholder="예: 피드백은 자세했지만 과제량이 많아서 시간 관리가 필요했어요." /><ErrorMessage formError={formError} targetKeys={["summary"]} /></label>
+            <label className="wide" data-error-key="detail">자세한 후기 <RequiredMark /><textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업 분위기, 좋았던 점, 아쉬웠던 점, 어떤 학생에게 추천하는지 적어 주세요." /><small className={`character-counter ${detailLength < MIN_DETAIL_LENGTH ? "muted" : ""}`}>현재 {detailLength}자 / 최소 {MIN_DETAIL_LENGTH}자</small><ErrorMessage formError={formError} targetKeys={["detail"]} /></label>
           </div>
         </section>
 
@@ -319,8 +336,8 @@ export default function ReviewNewPage() {
             <p>검수용 정보는 사이트에 공개되지 않으며, 리뷰 확인이 필요한 경우에만 사용됩니다.</p>
           </div>
           <div className="form-grid">
-            <label>작성자 상태 <RequiredMark /><select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select></label>
-            <label>연락 가능한 수단 <RequiredMark />
+            <label data-error-key="writerStatus">작성자 상태 <RequiredMark /><select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select><ErrorMessage formError={formError} targetKeys={["writerStatus"]} /></label>
+            <label data-error-key="contact">연락 가능한 수단 <RequiredMark />
               <div className="contact-method-grid">
                 <select value={form.contactMethod} onChange={(event) => updateField("contactMethod", event.target.value)}>
                   <option>이메일</option>
@@ -328,6 +345,7 @@ export default function ReviewNewPage() {
                 </select>
                 <input type={form.contactMethod === "이메일" ? "email" : "tel"} value={form.contact} onChange={(event) => updateField("contact", event.target.value)} placeholder={form.contactMethod === "이메일" ? "예: hello@example.com" : "예: 010-0000-0000"} />
               </div>
+              <ErrorMessage formError={formError} targetKeys={["contact"]} />
             </label>
             <label>합격 여부<select value={form.admissionResult} onChange={(event) => updateField("admissionResult", event.target.value)}>{admissionResults.map((result) => <option key={result} value={result}>{result || "선택 안 함"}</option>)}</select></label>
             <label>다닌 시기<input value={form.attendedYear} onChange={(event) => updateField("attendedYear", event.target.value)} placeholder="선택 입력 예: 2025년" /></label>
@@ -338,18 +356,19 @@ export default function ReviewNewPage() {
           <h2>제출 전 확인</h2>
           <div className="verification-checks">
             <label>
-              <input type="checkbox" checked={verificationChecks.notStaff} onChange={(event) => updateVerificationCheck("notStaff", event.target.checked)} />
+              <input type="checkbox" checked={verificationChecks.notStaff} onChange={(event) => updateVerificationCheck("notStaff", event.target.checked)} data-error-key="notStaff" />
               <span>저는 해당 학원의 관계자, 강사, 직원, 홍보 담당자가 아닙니다.</span>
             </label>
             <label>
-              <input type="checkbox" checked={verificationChecks.directExperience} onChange={(event) => updateVerificationCheck("directExperience", event.target.checked)} />
+              <input type="checkbox" checked={verificationChecks.directExperience} onChange={(event) => updateVerificationCheck("directExperience", event.target.checked)} data-error-key="directExperience" />
               <span>이 리뷰는 실제 경험을 바탕으로 작성했습니다.</span>
             </label>
             <label>
-              <input type="checkbox" checked={verificationChecks.falseReviewNotice} onChange={(event) => updateVerificationCheck("falseReviewNotice", event.target.checked)} />
+              <input type="checkbox" checked={verificationChecks.falseReviewNotice} onChange={(event) => updateVerificationCheck("falseReviewNotice", event.target.checked)} data-error-key="falseReviewNotice" />
               <span>허위 내용이 확인될 경우 리뷰가 비공개 처리될 수 있음을 확인했습니다.</span>
             </label>
           </div>
+          <ErrorMessage formError={formError} targetKeys={["notStaff", "directExperience", "falseReviewNotice"]} />
         </section>
         <button type="submit" className="submit-button">리뷰 등록하기</button>
       </form>
@@ -359,6 +378,11 @@ export default function ReviewNewPage() {
 
 function RequiredMark() {
   return <span className="required-mark">*</span>;
+}
+
+function ErrorMessage({ formError, targetKeys }: { formError: { key: string; message: string } | null; targetKeys: string[] }) {
+  if (!formError || !targetKeys.includes(formError.key)) return null;
+  return <p className="form-error">{formError.message}</p>;
 }
 
 function getMissingRequiredMessage(values: {
@@ -375,19 +399,19 @@ function getMissingRequiredMessage(values: {
   detail: string;
   verificationChecks: { notStaff: boolean; directExperience: boolean; falseReviewNotice: boolean };
 }) {
-  if (!values.academyName) return "학원 선택 항목 입력이 안 됐어요.";
-  if (values.rating === 0) return "만족도 항목 입력이 안 됐어요.";
-  if (values.preparedTypes.length === 0) return "준비 가능 전형 항목 입력이 안 됐어요.";
-  if (values.strongTypes.length === 0) return "강점 전형 항목 입력이 안 됐어요.";
-  if (values.feedbackTags.length === 0) return "피드백 스타일 항목 입력이 안 됐어요.";
-  if (values.goodTags.length === 0) return "좋았던 점 항목 입력이 안 됐어요.";
-  if (values.concernTags.length === 0) return "아쉬웠던 점 항목 입력이 안 됐어요.";
-  if (!values.summary.trim()) return "한 줄 후기 항목 입력이 안 됐어요.";
-  if (!values.detail.trim()) return "자세한 후기 항목 입력이 안 됐어요.";
-  if (!values.writerStatus) return "작성자 상태 항목 입력이 안 됐어요.";
-  if (!values.contact.trim()) return "연락 가능한 수단 항목 입력이 안 됐어요.";
-  if (!values.verificationChecks.notStaff) return "학원 관계자 아님 확인 항목 입력이 안 됐어요.";
-  if (!values.verificationChecks.directExperience) return "직접 경험 확인 항목 입력이 안 됐어요.";
-  if (!values.verificationChecks.falseReviewNotice) return "허위 내용 비공개 처리 확인 항목 입력이 안 됐어요.";
-  return "";
+  if (!values.academyName) return { key: "academy", message: "학원 선택 항목 입력이 안 됐어요." };
+  if (values.rating === 0) return { key: "rating", message: "만족도 항목 입력이 안 됐어요." };
+  if (values.preparedTypes.length === 0) return { key: "preparedTypes", message: "준비 가능 전형 항목 입력이 안 됐어요." };
+  if (values.strongTypes.length === 0) return { key: "strongTypes", message: "강점 전형 항목 입력이 안 됐어요." };
+  if (values.feedbackTags.length === 0) return { key: "feedbackTags", message: "피드백 스타일 항목 입력이 안 됐어요." };
+  if (values.goodTags.length === 0) return { key: "goodTags", message: "좋았던 점 항목 입력이 안 됐어요." };
+  if (values.concernTags.length === 0) return { key: "concernTags", message: "아쉬웠던 점 항목 입력이 안 됐어요." };
+  if (!values.summary.trim()) return { key: "summary", message: "한 줄 후기 항목 입력이 안 됐어요." };
+  if (!values.detail.trim()) return { key: "detail", message: "자세한 후기 항목 입력이 안 됐어요." };
+  if (!values.writerStatus) return { key: "writerStatus", message: "작성자 상태 항목 입력이 안 됐어요." };
+  if (!values.contact.trim()) return { key: "contact", message: "연락 가능한 수단 항목 입력이 안 됐어요." };
+  if (!values.verificationChecks.notStaff) return { key: "notStaff", message: "학원 관계자 아님 확인 항목 입력이 안 됐어요." };
+  if (!values.verificationChecks.directExperience) return { key: "directExperience", message: "직접 경험 확인 항목 입력이 안 됐어요." };
+  if (!values.verificationChecks.falseReviewNotice) return { key: "falseReviewNotice", message: "허위 내용 비공개 처리 확인 항목 입력이 안 됐어요." };
+  return null;
 }

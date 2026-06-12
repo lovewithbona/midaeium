@@ -19,6 +19,7 @@ export type EntranceType =
   | "칸만화"
   | "포트폴리오";
 
+export type ReviewStatus = "public" | "pending" | "rejected" | "hidden";
 export type TypeConfidence = "공식 확인" | "보조 출처 확인" | "이름 기반 1차 분류" | "확인 필요";
 export type SchoolTagCategory = "디자인" | "회화" | "조소" | "만화·애니" | "기타";
 export type SchoolTagSource = "운영자 입력" | "리뷰 기반" | "확인 필요";
@@ -2749,12 +2750,18 @@ export type Review = {
   likes?: number;
   empathy?: number;
   helpful?: number;
+  source?: "manual" | "demo" | "google-form";
+  sourceRow?: number;
+  academyNameRaw?: string;
+  schoolTextRaw?: string;
+  moderationFlags?: string[];
+  consent?: { publish: boolean; moderation: boolean };
   pros: string;
   cons: string;
   recommendedFor: string;
   teacherStyle: string;
   createdAt: string;
-  status: "public" | "pending";
+  status: ReviewStatus;
 };
 
 export const academies: Academy[] = applyAcademyChannelOverrides(academySeedsWithTypes);

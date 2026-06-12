@@ -1,6 +1,7 @@
 import type { Review } from "../data/academies";
 import { demoReviews } from "../data/reviews";
-import { getReviewReactionCount, getStoredReviews } from "./storage";
+import { getImportedReviewsAsReviews } from "./importedReviewAdapter";
+import { getModerationStatusOverride, getReviewReactionCount, getStoredReviews } from "./storage";
 
 type ReviewQueryOptions = {
   includePending?: boolean;
@@ -11,7 +12,10 @@ type KeywordSource = "feedbackTags" | "goodTags" | "concernTags" | "cautionTags"
 const excludedKeywordLabels = new Set(["특별히 없음", "해당 없음", "잘 모르겠음", "선택 안 함"]);
 
 export function getAllReviews(options: ReviewQueryOptions = {}): Review[] {
-  const reviews = [...getStoredReviews(), ...demoReviews];
+  const reviews = [...getStoredReviews(), ...getImportedReviewsAsReviews(), ...demoReviews].map((review) => ({
+    ...review,
+    status: getModerationStatusOverride(review.id) || review.status,
+  }));
   if (options.includePending) return reviews;
   return reviews.filter((review) => review.status === "public");
 }

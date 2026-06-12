@@ -9,6 +9,7 @@ import { getAcademyAggregatedInsights, getAcademyReviewStats } from "../utils/re
 const primaryRegions = ["전체", "서울", "경기", "부산", "울산", "대구", "광주"];
 const primaryTypes = ["기초디자인", "기초소양", "발상과 표현", "회화", "조소", "만화·애니"];
 const schoolOptions = ["국민대", "건국대", "홍익대", "서울과기대", "이화여대", "숙명여대", "성신여대", "중앙대", "경희대", "한예종", "기타"];
+const PAGE_SIZE = 20;
 
 export default function AcademiesPage() {
   const [params, setParams] = useSearchParams();
@@ -21,6 +22,7 @@ export default function AcademiesPage() {
   const district = params.get("district") || "전체";
   const school = params.get("school") || "";
   const keyword = params.get("q") || "";
+  const page = Math.max(1, Number(params.get("page") || "1") || 1);
   const [searchKeyword, setSearchKeyword] = useState(keyword);
 
   const districtOptions = useMemo(() => {
@@ -67,11 +69,16 @@ export default function AcademiesPage() {
     }).map((item) => item.academy);
   }, [region, district, type, school, keyword, sort]);
 
+  const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedResults = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   function updateParam(key: "region" | "district" | "type" | "q", value: string) {
     const next = new URLSearchParams(params);
     if (value === "전체" || value === "") next.delete(key);
     else next.set(key, value);
     if (key === "region") next.delete("district");
+    next.delete("page");
     setParams(next);
   }
 
@@ -79,6 +86,7 @@ export default function AcademiesPage() {
     const next = new URLSearchParams(params);
     if (!value || value === school) next.delete("school");
     else next.set("school", value);
+    next.delete("page");
     setParams(next);
   }
 
@@ -87,7 +95,20 @@ export default function AcademiesPage() {
     const next = new URLSearchParams(params);
     if (searchKeyword.trim()) next.set("q", searchKeyword.trim());
     else next.delete("q");
+    next.delete("page");
     setParams(next);
+  }
+
+  function updatePage(nextPage: number) {
+    const next = new URLSearchParams(params);
+    if (nextPage <= 1) next.delete("page");
+    else next.set("page", String(nextPage));
+    setParams(next);
+  }
+
+  function resetFilters() {
+    setSearchKeyword("");
+    setParams(new URLSearchParams());
   }
 
   const activeChips = [
@@ -97,6 +118,7 @@ export default function AcademiesPage() {
     school ? { key: "school", label: school } : null,
     keyword ? { key: "q", label: keyword } : null,
   ].filter(Boolean) as { key: "region" | "district" | "type" | "school" | "q"; label: string }[];
+  const hasActiveFilters = activeChips.length > 0;
 
   const visibleRegions = showAllRegions ? regions : primaryRegions;
   const visibleTypes = showAllTypes ? types : primaryTypes;
@@ -125,12 +147,12 @@ export default function AcademiesPage() {
         {isFilterOpen && (
           <div className="filter-panel">
             <FilterChips label="지역" items={visibleRegions} value={region} onChange={(value) => updateParam("region", value)} tone="region" />
-            {!showAllRegions && <button type="button" className="text-button filter-more-button" onClick={() => setShowAllRegions(true)}>지역 더보기</button>}
+            {!showAllRegions && <div className="filter-more-row"><span aria-hidden="true" /><button type="button" className="text-button filter-more-button" onClick={() => setShowAllRegions(true)}>지역 더보기</button></div>}
             {region !== "전체" && districtOptions.length > 1 && (
               <FilterChips label="세부 지역" items={districtOptions} value={district} onChange={(value) => updateParam("district", value)} tone="region" />
             )}
             <FilterChips label="전형" items={["전체", ...visibleTypes]} value={type} onChange={(value) => updateParam("type", value)} tone="type" />
-            {!showAllTypes && <button type="button" className="text-button filter-more-button" onClick={() => setShowAllTypes(true)}>전형 더보기</button>}
+            {!showAllTypes && <div className="filter-more-row"><span aria-hidden="true" /><button type="button" className="text-button filter-more-button" onClick={() => setShowAllTypes(true)}>전형 더보기</button></div>}
             <FilterChips label="주요 대비 대학" items={schoolOptions} value={school} onChange={updateSchool} tone="type" />
           </div>
         )}
@@ -138,7 +160,10 @@ export default function AcademiesPage() {
           <span>검색 결과 {results.length}개</span>
           <div className="tool-actions">
             {keyword && <button type="button" className="text-button" onClick={() => updateParam("q", "")}>검색어 지우기</button>}
-            <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="정렬">
+            <select value={sort} onChange={(event) => {
+              setSort(event.target.value);
+              updatePage(1);
+            }} aria-label="정렬">
               <option value="latest">최신순</option>
               <option value="name">이름순</option>
               <option value="reviewCount">리뷰 많은순</option>
@@ -148,16 +173,29 @@ export default function AcademiesPage() {
           </div>
         </div>
         {results.length > 0 ? (
-          <div className="academy-grid">
-            {results.map((academy) => (
-              <AcademyCard key={academy.id} academy={academy} />
-            ))}
-          </div>
+          <>
+            <div className="academy-grid">
+              {pagedResults.map((academy) => (
+                <AcademyCard key={academy.id} academy={academy} />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="pagination-controls" aria-label="학원 목록 페이지 이동">
+                <button type="button" onClick={() => updatePage(currentPage - 1)} disabled={currentPage <= 1}>이전</button>
+                <strong>{currentPage} / {totalPages}</strong>
+                <button type="button" onClick={() => updatePage(currentPage + 1)} disabled={currentPage >= totalPages}>다음</button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="empty-state">
-            <h2>아직 등록된 학원이 없어요.</h2>
-            <p>이 지역의 학원 정보를 알고 있다면 첫 번째로 등록해 주세요.</p>
-            <Link className="primary-button" to="/review/new">학원 정보 등록하기</Link>
+            <h2>조건에 맞는 학원이 없어요.</h2>
+            <p>검색어 또는 필터를 조금 넓혀서 다시 확인해 주세요.</p>
+            {hasActiveFilters ? (
+              <button type="button" className="primary-button" onClick={resetFilters}>필터 초기화</button>
+            ) : (
+              <Link className="primary-button" to="/review/new">학원 정보 등록하기</Link>
+            )}
           </div>
         )}
       </section>
