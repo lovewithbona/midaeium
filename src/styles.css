@@ -1861,7 +1861,8 @@ input::placeholder {
 
 .mypage-page {
   display: grid;
-  gap: 28px;
+  gap: 22px;
+  font-size: 14px;
 }
 
 .mypage-hero {
@@ -1871,15 +1872,20 @@ input::placeholder {
   gap: 22px;
 }
 
+.mypage-hero h1 {
+  font-size: clamp(30px, 4vw, 44px);
+}
+
 .mypage-hero p {
   max-width: 680px;
   color: var(--muted);
+  font-size: 15px;
 }
 
 .mypage-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .mypage-summary div,
@@ -1890,32 +1896,79 @@ input::placeholder {
 
 .mypage-summary div {
   display: grid;
-  gap: 8px;
-  padding: 22px;
+  gap: 6px;
+  padding: 14px;
 }
 
 .mypage-summary span {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .mypage-summary strong {
-  font-size: 22px;
+  font-size: 19px;
 }
 
 .mypage-panel {
-  padding: 26px;
+  padding: 20px;
+}
+
+.mypage-panel h2 {
+  font-size: 24px;
+}
+
+.admin-section-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.admin-status-section {
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.admin-status-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-status-head h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.admin-status-head p,
+.admin-empty-text {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-status-head strong {
+  flex: 0 0 auto;
+  color: var(--point);
+  font-size: 16px;
+}
+
+.admin-empty-text {
+  padding: 14px 16px 16px;
 }
 
 .admin-review-list {
   display: grid;
-  gap: 18px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .admin-review-item {
   display: grid;
-  gap: 14px;
-  padding: 18px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid var(--line);
   background: var(--surface);
 }
@@ -1932,8 +1985,13 @@ input::placeholder {
   gap: 14px;
 }
 
+.admin-review-meta strong {
+  font-size: 15px;
+}
+
 .admin-review-meta p {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
+  font-size: 12px;
 }
 
 .moderation-flags {
@@ -1944,16 +2002,16 @@ input::placeholder {
 }
 
 .moderation-flags span {
-  padding: 5px 8px;
+  padding: 4px 7px;
   border: 1px solid #e49a83;
   background: #fff0ec;
   color: #9b2f20;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
 }
 
 .raw-note {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   background: #fff;
 }
@@ -1968,14 +2026,40 @@ input::placeholder {
 .raw-note p {
   margin: 0;
   color: var(--text);
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .moderation-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
+}
+
+.moderation-actions button {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.admin-review-item .review-card {
+  padding: 14px;
+}
+
+.admin-review-item .review-summary {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.admin-review-item .review-metrics span,
+.admin-review-item .review-tag {
+  min-height: 26px;
+  font-size: 12px;
+}
+
+.admin-review-item .review-detail-preview p {
+  font-size: 13px;
 }
 
 .danger-button {

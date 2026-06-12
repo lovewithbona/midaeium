@@ -4,11 +4,24 @@ const REVIEWS_KEY = "midaeieum_pending_reviews";
 const REVIEW_LIKES_KEY = "midaeieum_review_likes";
 const REVIEW_REACTIONS_KEY = "midaeieum_review_reactions";
 const REVIEW_MODERATION_KEY = "midaeieum_review_moderation_status";
+const REVIEW_RESET_VERSION_KEY = "midaeieum_review_reset_version";
+const REVIEW_RESET_VERSION = "2026-06-13-clear-all-reviews";
 const USER_KEY = "midaeieum_fake_user";
 export type ReviewReactionType = "empathy" | "helpful";
 
 export const DEMO_ADMIN_EMAIL = "admin@midaeium.kr";
 export const DEMO_ADMIN_PASSWORD = "midaeium2026";
+
+export function resetReviewStorageIfNeeded() {
+  if (typeof localStorage === "undefined") return;
+  if (localStorage.getItem(REVIEW_RESET_VERSION_KEY) === REVIEW_RESET_VERSION) return;
+
+  localStorage.removeItem(REVIEWS_KEY);
+  localStorage.removeItem(REVIEW_LIKES_KEY);
+  localStorage.removeItem(REVIEW_REACTIONS_KEY);
+  localStorage.removeItem(REVIEW_MODERATION_KEY);
+  localStorage.setItem(REVIEW_RESET_VERSION_KEY, REVIEW_RESET_VERSION);
+}
 
 export function getStoredReviews(): Review[] {
   try {
