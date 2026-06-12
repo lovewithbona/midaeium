@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { type Academy } from "../data/academies";
+import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getReviewPreview } from "../utils/reviewStats";
 
 export default function AcademyCard({ academy }: { academy: Academy }) {
@@ -11,6 +12,7 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
   const typeTags = uniqueTags([...strongTypes.slice(0, 2), ...insights.schoolTagCounts.slice(0, 2).map((item) => item.label)]);
   const reviewTags = uniqueTags(insights.topKeywordCounts.slice(0, 2).map((item) => item.label));
   const detailUrl = `/academies/${academy.id}`;
+  const displayName = getAcademyDisplayName(academy);
 
   function openDetail() {
     navigate(detailUrl);
@@ -25,11 +27,11 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
       }}
       role="link"
       tabIndex={0}
-      aria-label={`${academy.name} 상세 보기`}
+      aria-label={`${displayName} 상세 보기`}
     >
       <div className="card-top">
         <div>
-          <h3>{academy.name}</h3>
+          <h3>{displayName}</h3>
           <p className="muted">{academy.region} {academy.district} · {academy.location}</p>
         </div>
       </div>

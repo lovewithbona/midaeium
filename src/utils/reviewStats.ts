@@ -1,6 +1,6 @@
 import type { Review } from "../data/academies";
 import { demoReviews } from "../data/reviews";
-import { getReviewLikeCount, getStoredReviews } from "./storage";
+import { getReviewReactionCount, getStoredReviews } from "./storage";
 
 type ReviewQueryOptions = {
   includePending?: boolean;
@@ -20,8 +20,8 @@ export function getAcademyReviewStats(academyId: string) {
   const reviews = getAllReviews()
     .filter((review) => review.academyId === academyId)
     .sort((a, b) => {
-      const likeGap = getReviewLikeCount(b) - getReviewLikeCount(a);
-      if (likeGap !== 0) return likeGap;
+      const helpfulGap = getReviewReactionCount(b, "helpful") - getReviewReactionCount(a, "helpful");
+      if (helpfulGap !== 0) return helpfulGap;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   const ratingSum = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
@@ -81,16 +81,16 @@ export function createHashtag(label: string) {
 export function getRepresentativeReview(reviews: Review[]) {
   if (reviews.length === 0) return null;
   const sortedByLikes = [...reviews].sort((a, b) => {
-    const likeGap = getReviewLikeCount(b) - getReviewLikeCount(a);
-    if (likeGap !== 0) return likeGap;
+    const helpfulGap = getReviewReactionCount(b, "helpful") - getReviewReactionCount(a, "helpful");
+    if (helpfulGap !== 0) return helpfulGap;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
   const topReview = sortedByLikes[0];
-  const hasLikes = getReviewLikeCount(topReview) > 0;
+  const hasHelpful = getReviewReactionCount(topReview, "helpful") > 0;
 
   return {
     review: topReview,
-    title: hasLikes ? "가장 도움이 된 리뷰" : "최근 등록된 리뷰",
+    title: hasHelpful ? "가장 도움이 된 리뷰" : "최근 등록된 리뷰",
     preview: getReviewPreview(topReview),
   };
 }

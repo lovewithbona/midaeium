@@ -2,7 +2,9 @@ import type { Review } from "../data/academies";
 
 const REVIEWS_KEY = "midaeieum_pending_reviews";
 const REVIEW_LIKES_KEY = "midaeieum_review_likes";
+const REVIEW_REACTIONS_KEY = "midaeieum_review_reactions";
 const USER_KEY = "midaeieum_fake_user";
+export type ReviewReactionType = "empathy" | "helpful";
 
 export const DEMO_ADMIN_EMAIL = "admin@midaeium.kr";
 export const DEMO_ADMIN_PASSWORD = "midaeium2026";
@@ -38,6 +40,40 @@ export function addReviewLike(reviewId: string) {
   const nextCount = (likes[reviewId] || 0) + 1;
   localStorage.setItem(REVIEW_LIKES_KEY, JSON.stringify({ ...likes, [reviewId]: nextCount }));
   return nextCount;
+}
+
+export function getReviewReactionsMap(): Record<string, Partial<Record<ReviewReactionType, boolean>>> {
+  try {
+    return JSON.parse(localStorage.getItem(REVIEW_REACTIONS_KEY) || "{}") as Record<string, Partial<Record<ReviewReactionType, boolean>>>;
+  } catch {
+    return {};
+  }
+}
+
+export function hasReactedToReview(reviewId: string, type: ReviewReactionType) {
+  return Boolean(getReviewReactionsMap()[reviewId]?.[type]);
+}
+
+export function getReviewReactionCount(review: Review, type: ReviewReactionType) {
+  const reacted = hasReactedToReview(review.id, type) ? 1 : 0;
+  const baseCount = type === "empathy" ? review.empathy ?? review.likes ?? 0 : review.helpful ?? 0;
+  const legacyLikeCount = type === "empathy" ? getReviewLikesMap()[review.id] || 0 : 0;
+  return baseCount + legacyLikeCount + reacted;
+}
+
+export function addReviewReaction(reviewId: string, type: ReviewReactionType) {
+  const reactions = getReviewReactionsMap();
+  const current = reactions[reviewId] || {};
+  if (current[type]) return false;
+
+  localStorage.setItem(REVIEW_REACTIONS_KEY, JSON.stringify({
+    ...reactions,
+    [reviewId]: {
+      ...current,
+      [type]: true,
+    },
+  }));
+  return true;
 }
 
 export function getFakeUser() {

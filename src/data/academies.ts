@@ -2747,6 +2747,8 @@ export type Review = {
     falseReviewNotice: boolean;
   };
   likes?: number;
+  empathy?: number;
+  helpful?: number;
   pros: string;
   cons: string;
   recommendedFor: string;

@@ -3,14 +3,16 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
 import { academies, getAcademyMapUrl } from "../data/academies";
+import type { Review } from "../data/academies";
+import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getRepresentativeReview } from "../utils/reviewStats";
-import { getReviewLikeCount } from "../utils/storage";
+import { getReviewReactionCount } from "../utils/storage";
 
 export default function AcademyDetailPage() {
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
   const [, setLikeTick] = useState(0);
-  const [reviewSort, setReviewSort] = useState("likes");
+  const [reviewSort, setReviewSort] = useState("helpful");
   const activeTab = params.get("tab") === "reviews" ? "reviews" : "info";
   const academy = academies.find((item) => item.id === id);
 
@@ -29,12 +31,16 @@ export default function AcademyDetailPage() {
   const insights = getAcademyAggregatedInsights(academy.id);
   const representativeReview = getRepresentativeReview(reviews);
   const hasReviews = reviewCount > 0;
+  const displayName = getAcademyDisplayName(academy);
   const preparedLabels = insights.preparedTypeCounts.length > 0 ? insights.preparedTypeCounts : academy.entranceTypes.map((label) => ({ label, count: 0 }));
   const strongLabels = insights.strongTypeCounts.length > 0 ? insights.strongTypeCounts : academy.strongTypes.map((label) => ({ label, count: 0 }));
+  const keywordGroups = getKeywordGroups(reviews);
   const sortedReviews = [...reviews].sort((a, b) => {
+    if (reviewSort === "empathy") return getReviewReactionCount(b, "empathy") - getReviewReactionCount(a, "empathy") || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    if (reviewSort === "helpful") return getReviewReactionCount(b, "helpful") - getReviewReactionCount(a, "helpful") || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     if (reviewSort === "recent") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     if (reviewSort === "old") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    return getReviewLikeCount(b) - getReviewLikeCount(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return getReviewReactionCount(b, "helpful") - getReviewReactionCount(a, "helpful") || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
   const homepageLabel = getHomepageLabel(academy.officialWebsiteUrl);
   const instagramLabel = getInstagramLabel(academy.instagramUrl);
@@ -45,8 +51,7 @@ export default function AcademyDetailPage() {
       <section className="detail-hero">
         <div>
           <p className="eyebrow">{academy.region} {academy.district}</p>
-          <h1>{academy.name}</h1>
-          <p>{academy.location}</p>
+          <h1>{displayName}</h1>
           <div className="detail-rating-line">
             {hasReviews ? <strong>평균 하트 {averageRating.toFixed(1)} / 5</strong> : <strong>아직 하트 평가가 없어요.</strong>}
             <span>리뷰 {reviewCount}개</span>
@@ -56,7 +61,7 @@ export default function AcademyDetailPage() {
               <>
                 <span>{representativeReview.title}</span>
                 <p>“{representativeReview.preview}”</p>
-                <small>익명 · {representativeReview.review.writerStatus} · {representativeReview.review.strongTypes?.[0] || "전형 미입력"}</small>
+                <small>{representativeReview.review.writerStatus || "작성자"}</small>
               </>
             ) : (
               <>
@@ -94,23 +99,27 @@ export default function AcademyDetailPage() {
           <h2>학원 정보</h2>
           <div className="detail-summary-grid">
             <div>
-              <span>지역</span>
+              <span><i className="info-icon region" aria-hidden="true" />지역</span>
               <strong>{academy.region} {academy.district}</strong>
             </div>
             <div>
-              <span>주소</span>
+              <span><i className="info-icon address" aria-hidden="true" />주소</span>
               <strong>{academy.address}</strong>
             </div>
             <div>
-              <span>준비 가능 전형</span>
+              <span><i className="info-icon location" aria-hidden="true" />위치 설명</span>
+              <strong>{academy.location}</strong>
+            </div>
+            <div>
+              <span><i className="info-icon type" aria-hidden="true" />준비 가능 전형</span>
               <strong>{preparedLabels.length > 0 ? preparedLabels.slice(0, 4).map((item) => item.label).join(", ") : "확인 중"}</strong>
             </div>
             <div>
-              <span>강점 입시 유형</span>
+              <span><i className="info-icon strength" aria-hidden="true" />강점 입시 유형</span>
               <strong>{strongLabels.length > 0 ? strongLabels.slice(0, 4).map((item) => item.label).join(", ") : "확인 중"}</strong>
             </div>
             <div>
-              <span>주요 대비 대학</span>
+              <span><i className="info-icon school" aria-hidden="true" />주요 대비 대학</span>
               <strong>{insights.schoolTagCounts.length > 0 ? insights.schoolTagCounts.slice(0, 4).map((item) => item.label).join(", ") : academy.schoolTags.length > 0 ? academy.schoolTags.map((tag) => tag.schoolName).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
             </div>
           </div>
@@ -153,16 +162,26 @@ export default function AcademyDetailPage() {
           </div>
           <div className="keyword-summary">
             <strong>많이 언급된 키워드</strong>
-            <div className="review-tags review-tags-inline">
-              {insights.topKeywordCounts.length > 0 ? insights.topKeywordCounts.slice(0, 10).map((item) => (
-                <span className={`review-tag ${item.tone}`} key={item.label}>{createHashtag(item.label)} {item.count}</span>
-              )) : <span className="muted">아직 충분한 키워드가 없습니다.</span>}
-            </div>
+            {keywordGroups.length > 0 ? (
+              <div className="keyword-group-list">
+                {keywordGroups.map((group) => (
+                  <div className="keyword-group" key={group.title}>
+                    <span>{group.title}</span>
+                    <div className="review-tags review-tags-inline">
+                      {group.items.map((item) => (
+                        <span className={`review-tag ${item.tone}`} key={`${group.title}-${item.label}`}>{createHashtag(item.label)} {item.count}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : <span className="muted">아직 충분한 키워드가 없습니다.</span>}
           </div>
           <div className="review-sort-row">
             <label>리뷰 정렬
               <select value={reviewSort} onChange={(event) => setReviewSort(event.target.value)}>
-                <option value="likes">좋아요순</option>
+                <option value="helpful">도움되는순</option>
+                <option value="empathy">공감순</option>
                 <option value="recent">최근순</option>
                 <option value="old">오래된순</option>
               </select>
@@ -197,4 +216,29 @@ function getInstagramLabel(url: string | null) {
   } catch {
     return "인스타그램";
   }
+}
+
+function getKeywordGroups(reviews: Review[]) {
+  return [
+    { title: "피드백 스타일", labels: reviews.flatMap((review) => review.feedbackTags || []), tone: "feedback" },
+    { title: "좋았던 점", labels: reviews.flatMap((review) => review.goodTags || []), tone: "positive" },
+    { title: "아쉬웠던 점", labels: reviews.flatMap((review) => review.concernTags || []), tone: "negative" },
+    { title: "주의할 점", labels: reviews.flatMap((review) => review.cautionTags || []), tone: "caution" },
+  ].map((group) => ({
+    title: group.title,
+    tone: group.tone,
+    items: countLabels(group.labels).slice(0, 6).map((item) => ({ ...item, tone: group.tone })),
+  })).filter((group) => group.items.length > 0);
+}
+
+function countLabels(labels: string[]) {
+  const counts = new Map<string, number>();
+
+  labels.filter(Boolean).forEach((label) => {
+    counts.set(label, (counts.get(label) || 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ko"))
+    .map(([label, count]) => ({ label, count }));
 }

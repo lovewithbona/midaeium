@@ -1,24 +1,41 @@
 import { useState } from "react";
 import type { Review } from "../data/academies";
-import { addReviewLike, getReviewLikeCount } from "../utils/storage";
-import { createHashtag, getReviewKeywordItems, getReviewPreview } from "../utils/reviewStats";
+import { addReviewReaction, getReviewReactionCount, hasReactedToReview, type ReviewReactionType } from "../utils/storage";
+import { createHashtag, getReviewPreview, type KeywordTone } from "../utils/reviewStats";
 
 export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
-  const strongTypes = review.strongTypes?.join(", ") || "전형 미입력";
   const preview = getReviewPreview(review, 90);
-  const hashtags = getReviewTagItems(review).slice(0, 10);
-  const [likes, setLikes] = useState(() => getReviewLikeCount(review));
+  const tagGroups = getReviewTagGroups(review);
+  const [reactionState, setReactionState] = useState(() => ({
+    empathy: {
+      active: hasReactedToReview(review.id, "empathy"),
+      count: getReviewReactionCount(review, "empathy"),
+    },
+    helpful: {
+      active: hasReactedToReview(review.id, "helpful"),
+      count: getReviewReactionCount(review, "helpful"),
+    },
+  }));
   const [isExpanded, setIsExpanded] = useState(false);
 
-  function handleLike() {
-    setLikes(addReviewLike(review.id) + (review.likes || 0));
+  function handleReaction(type: ReviewReactionType) {
+    const didAdd = addReviewReaction(review.id, type);
+    if (!didAdd) return;
+
+    setReactionState((current) => ({
+      ...current,
+      [type]: {
+        active: true,
+        count: current[type].count + 1,
+      },
+    }));
     onLike?.();
   }
 
   return (
     <article className="review-card">
       <div className="review-head">
-        <strong>익명 · {review.writerStatus} · {strongTypes}</strong>
+        <strong>{review.writerStatus || "작성자"}</strong>
         {review.status === "pending" && <span className="status-pill">검토 대기</span>}
       </div>
       <div className="heart-readout" aria-label={`만족도 ${review.rating || 0}점`}>
@@ -33,11 +50,14 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       </div>
       {preview && <p className="review-summary">“{preview}”</p>}
       <div className="review-body">
-        {hashtags.length > 0 && (
-          <div className="review-tags review-tags-inline">
-            {hashtags.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${tag.tone}-${tag.label}`}>{tag.label}</span>)}
+        {tagGroups.map((group) => (
+          <div className="review-tag-question" key={group.title}>
+            <b>{group.title}</b>
+            <div className="review-tags">
+              {group.items.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${group.title}-${tag.label}`}>{tag.label}</span>)}
+            </div>
           </div>
-        )}
+        ))}
         {review.detail && (
           <div className="review-detail-preview">
             <b>자세한 후기</b>
@@ -50,15 +70,43 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
           </div>
         )}
       </div>
-      <button className="review-like-button" type="button" onClick={handleLike}>
-        좋아요 {likes}
-      </button>
+      <div className="review-reaction-row" aria-label="리뷰 반응">
+        <button
+          className={`review-reaction-button ${reactionState.empathy.active ? "active" : ""}`}
+          type="button"
+          onClick={() => handleReaction("empathy")}
+          disabled={reactionState.empathy.active}
+        >
+          공감해요 {reactionState.empathy.count}
+        </button>
+        <button
+          className={`review-reaction-button ${reactionState.helpful.active ? "active" : ""}`}
+          type="button"
+          onClick={() => handleReaction("helpful")}
+          disabled={reactionState.helpful.active}
+        >
+          도움돼요 {reactionState.helpful.count}
+        </button>
+      </div>
     </article>
   );
 }
 
-function getReviewTagItems(review: Review) {
-  const items = getReviewKeywordItems(review).map((item) => ({ label: createHashtag(item.label), tone: item.tone }));
+function getReviewTagGroups(review: Review) {
+  return [
+    { title: "피드백 스타일", labels: review.feedbackTags || [], tone: "feedback" },
+    { title: "좋았던 점", labels: review.goodTags || [], tone: "positive" },
+    { title: "아쉬웠던 점", labels: review.concernTags || [], tone: "negative" },
+    { title: "주의할 점", labels: review.cautionTags || [], tone: "caution" },
+  ]
+    .map((group) => ({
+      title: group.title,
+      items: uniqueTags(group.labels, group.tone as KeywordTone | "feedback" | "caution"),
+    }))
+    .filter((group) => group.items.length > 0);
+}
 
+function uniqueTags(labels: string[], tone: KeywordTone | "feedback" | "caution") {
+  const items = labels.map((label) => ({ label: createHashtag(label), tone })).filter((item) => item.label);
   return Array.from(new Map(items.map((item) => [item.label, item])).values());
 }

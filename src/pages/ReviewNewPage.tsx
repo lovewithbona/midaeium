@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
 import type { Review } from "../data/academies";
+import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { saveStoredReview } from "../utils/storage";
 
 const moods = ["매우 진지해요", "진지한 편이에요", "보통이에요", "자유로운 편이에요", "매우 자유로워요"];
@@ -210,7 +211,7 @@ export default function ReviewNewPage() {
               {filteredAcademies.map((academy) => (
                 <label key={academy.id} className={`radio-card ${academyId === academy.id ? "selected" : ""}`}>
                   <input type="radio" checked={academyId === academy.id} onChange={() => setAcademyId(academy.id)} />
-                  <span>{academy.name}</span>
+                  <span>{getAcademyDisplayName(academy)}</span>
                   <small>{academy.location}</small>
                   {academyId === academy.id && <b>선택됨</b>}
                 </label>
