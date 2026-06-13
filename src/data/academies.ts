@@ -4,6 +4,7 @@
 // 실제 서비스 반영 전에는 typeConfidence가 "공식 확인"이 아닌 항목을 반드시 학원 공식 채널/지도/전화로 검수하세요.
 
 import { academyChannelOverrides, type AcademyChannelConfidence } from "./academyChannelOverrides";
+import { reviewedAcademyDrafts } from "./adminReviewedData";
 
 export type EntranceType =
   | "기초디자인"
@@ -2767,7 +2768,41 @@ export type Review = {
   status: ReviewStatus;
 };
 
-export const academies: Academy[] = applyAcademyChannelOverrides(academySeedsWithTypes);
+function normalizeReviewedAcademyDrafts(): Academy[] {
+  return reviewedAcademyDrafts.map((academy) => ({
+    id: academy.id,
+    name: academy.name,
+    region: academy.region,
+    district: academy.district,
+    location: `${academy.region} ${academy.district}`,
+    address: academy.address,
+    homepageUrl: academy.officialWebsiteUrl,
+    mapSearchQuery: `${academy.name} ${academy.address}`,
+    sourceUrl: null,
+    verifiedStatus: academy.verifiedStatus,
+    entranceTypes: [],
+    strongTypes: [],
+    typeSourceUrl: null,
+    typeConfidence: "확인 필요",
+    typeMemo: "운영자 검수 export로 정적 반영된 학원입니다.",
+    createdAt: academy.createdAt,
+    schoolTags: [],
+    officialWebsiteUrl: academy.officialWebsiteUrl,
+    instagramUrl: academy.instagramUrl,
+    naverBlogUrl: academy.naverBlogUrl,
+    channelConfidence: "확인 필요",
+    channelMemo: "운영자 검수 export로 정적 반영된 채널 정보입니다.",
+    channelSourceUrls: [academy.officialWebsiteUrl, academy.instagramUrl, academy.naverBlogUrl].filter(Boolean) as string[],
+  }));
+}
+
+function mergeAcademies(baseAcademies: Academy[], extraAcademies: Academy[]) {
+  const academyMap = new Map<string, Academy>();
+  [...baseAcademies, ...extraAcademies].forEach((academy) => academyMap.set(academy.id, academy));
+  return [...academyMap.values()];
+}
+
+export const academies: Academy[] = mergeAcademies(applyAcademyChannelOverrides(academySeedsWithTypes), normalizeReviewedAcademyDrafts());
 
 export const regions = [
   "전체",

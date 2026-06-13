@@ -1,4 +1,5 @@
 import { academies, type Academy, type Review, type ReviewStatus } from "../data/academies";
+import { reviewedImportedReviews, reviewedReviewOverrides } from "../data/adminReviewedData";
 import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/importedReviews";
 import { normalizeUniversityName } from "../data/universities";
 import { getAdminAcademyDrafts, getModerationStatusOverride, getReviewAcademyMatchOverride, getReviewDetailPublicOverride, getReviewSchoolTagsOverride } from "./storage";
@@ -39,14 +40,20 @@ export function getImportedReviewMatch(review: ImportedFormReview) {
 
 function convertImportedReview(review: ImportedFormReview): Review {
   const match = matchAcademy(review);
-  const status = getModerationStatusOverride(review.id) || review.status;
-  const detailPublic = getReviewDetailPublicOverride(review.id) || review.detailPublic;
-  const schoolTagOverride = getReviewSchoolTagsOverride(review.id);
+  const reviewedImportedReview = reviewedImportedReviews.find((item) => item.id === review.id);
+  const reviewedOverride = reviewedReviewOverrides.find((item) => item.reviewId === review.id);
+  const localStatus = getModerationStatusOverride(review.id);
+  const localDetailPublic = getReviewDetailPublicOverride(review.id);
+  const localSchoolTagOverride = getReviewSchoolTagsOverride(review.id);
+  const academyId = getReviewAcademyMatchOverride(review.id) || reviewedOverride?.academyId || reviewedImportedReview?.academyId || match.academyId;
+  const matchedAcademy = getAllAcademyCandidates().find((academy) => academy.id === academyId);
+  const reviewSchoolTags = localSchoolTagOverride || reviewedOverride?.reviewSchoolTags || reviewedImportedReview?.reviewSchoolTags || normalizeReviewSchoolTags(review.reviewSchoolTags);
 
   return {
+    ...reviewedImportedReview,
     id: review.id,
-    academyId: match.academyId,
-    academyName: review.academyName,
+    academyId,
+    academyName: reviewedOverride?.academyName || matchedAcademy?.name || reviewedImportedReview?.academyName || review.academyName,
     academyNameRaw: review.academyNameRaw,
     writerStatus: review.writerStatus,
     attendedYear: review.attendedYear,
@@ -54,8 +61,8 @@ function convertImportedReview(review: ImportedFormReview): Review {
     admissionResult: review.admissionResult,
     preparedTypes: review.preparedTypes,
     strongTypes: review.strongTypes,
-    reviewSchoolTags: schoolTagOverride || normalizeReviewSchoolTags(review.reviewSchoolTags),
-    reviewSchoolTagsRaw: review.reviewSchoolTags,
+    reviewSchoolTags,
+    reviewSchoolTagsRaw: reviewedImportedReview?.reviewSchoolTagsRaw || review.reviewSchoolTags,
     schoolTextRaw: review.schoolTextRaw,
     atmosphere: review.atmosphere,
     rating: review.rating,
@@ -70,14 +77,14 @@ function convertImportedReview(review: ImportedFormReview): Review {
     summary: review.summary,
     detailOriginal: review.detailOriginal,
     detail: review.detail,
-    detailPublic,
+    detailPublic: localDetailPublic || reviewedImportedReview?.detailPublic || review.detailPublic,
     likes: review.likes,
     pros: review.goodTags.join(", "),
     cons: review.concernTags.join(", "),
     recommendedFor: review.cautionTags.join(", ") || "상세 후기를 참고해 주세요.",
     teacherStyle: review.feedbackTags.join(", "),
     createdAt: review.createdAt,
-    status: status as ReviewStatus,
+    status: (localStatus || reviewedOverride?.status || reviewedImportedReview?.status || review.status) as ReviewStatus,
     source: review.source,
     sourceRow: review.sourceRow,
     moderationFlags: review.moderationFlags,

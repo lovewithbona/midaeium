@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, type Academy, type Review, type ReviewStatus } from "../data/academies";
 import { findUniversityByName, searchUniversities, suggestUniversitiesFromRawText } from "../data/universities";
+import { downloadAdminReviewExport } from "../utils/adminExport";
 import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
 import {
   clearFakeUser,
@@ -175,6 +176,7 @@ export default function MyPage() {
         academyDraft.instagramUrl,
         academyDraft.naverBlogUrl,
       ].filter(Boolean),
+      createdAt: new Date().toISOString(),
     };
 
     saveAdminAcademyDraft(academy);
@@ -202,7 +204,15 @@ export default function MyPage() {
           <h1>운영자 검수 페이지</h1>
           <p>구글폼으로 수집된 리뷰를 확인하고, 학원 매칭과 주요 대비 대학 정보를 사이트 기준에 맞게 정리합니다.</p>
         </div>
-        <button className="secondary-button" type="button" onClick={handleLogout}>로그아웃</button>
+        <div className="admin-hero-actions">
+          <button className="primary-button" type="button" onClick={downloadAdminReviewExport}>검수 결과 내보내기</button>
+          <button className="secondary-button" type="button" onClick={handleLogout}>로그아웃</button>
+        </div>
+      </section>
+
+      <section className="admin-export-notice">
+        <strong>현재 검수 결과는 이 브라우저에 임시 저장됩니다.</strong>
+        <p>다른 기기나 다른 브라우저에서는 보이지 않으며, 사이트에 실제 반영하려면 검수 결과를 내보낸 뒤 데이터 파일에 추가해야 합니다.</p>
       </section>
 
       <section className="mypage-summary">

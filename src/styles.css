@@ -1948,6 +1948,32 @@ input::placeholder {
   font-size: 15px;
 }
 
+.admin-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.admin-export-notice {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 1px solid #cfe0ff;
+  background: #f6f9ff;
+}
+
+.admin-export-notice strong {
+  color: var(--point);
+  font-size: 15px;
+}
+
+.admin-export-notice p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .mypage-summary {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
