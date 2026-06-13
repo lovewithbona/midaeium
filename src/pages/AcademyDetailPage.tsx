@@ -97,16 +97,8 @@ export default function AcademyDetailPage() {
           <h2>학원 정보</h2>
           <div className="detail-summary-grid">
             <div>
-              <span><i className="info-icon region" aria-hidden="true" />지역</span>
-              <strong>{academy.region} {academy.district}</strong>
-            </div>
-            <div>
-              <span><i className="info-icon address" aria-hidden="true" />주소</span>
-              <strong>{academy.address}</strong>
-            </div>
-            <div>
-              <span><i className="info-icon location" aria-hidden="true" />위치 설명</span>
-              <strong>{academy.location}</strong>
+              <span><i className="info-icon address" aria-hidden="true" />지역 및 주소</span>
+              <strong>{academy.region} {academy.district} · {academy.address}</strong>
             </div>
             <div>
               <span><i className="info-icon type" aria-hidden="true" />준비 가능 전형</span>
@@ -121,7 +113,7 @@ export default function AcademyDetailPage() {
               <strong>{insights.schoolTagCounts.length > 0 ? insights.schoolTagCounts.slice(0, 4).map((item) => item.label).join(", ") : academy.schoolTags.length > 0 ? academy.schoolTags.map((tag) => tag.schoolName).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
             </div>
           </div>
-          <p className="type-note">{hasReviews ? "지금까지 등록된 리뷰를 바탕으로 정리한 정보입니다." : "아직 리뷰가 충분하지 않아 기본 등록 정보를 보여주고 있습니다."}</p>
+          <p className="type-note">{hasReviews ? "지금까지 등록된 리뷰를 바탕으로 정리한 정보입니다." : "기본 등록 정보를 보여 주고 있습니다. 리뷰가 쌓이면 데이터가 업데이트됩니다."}</p>
           {hasChannel && (
             <dl className="detail-list compact">
               {academy.officialWebsiteUrl && (
