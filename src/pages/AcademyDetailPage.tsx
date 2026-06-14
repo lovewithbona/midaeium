@@ -34,6 +34,10 @@ export default function AcademyDetailPage() {
   const displayName = getAcademyDisplayName(academy);
   const preparedLabels = insights.preparedTypeCounts.length > 0 ? insights.preparedTypeCounts : academy.entranceTypes.map((label) => ({ label, count: 0 }));
   const strongLabels = insights.strongTypeCounts.length > 0 ? insights.strongTypeCounts : academy.strongTypes.map((label) => ({ label, count: 0 }));
+  const schoolLabels = insights.schoolTagCounts.length > 0
+    ? insights.schoolTagCounts.map((item) => item.label)
+    : academy.schoolTags.map((tag) => tag.schoolName);
+  const schoolInfoNote = getSchoolInfoNote(insights.schoolTagCounts.length > 0, academy.schoolTags.length > 0);
   const keywordGroups = getKeywordGroups(reviews);
   const sortedReviews = [...reviews].sort((a, b) => {
     if (reviewSort === "empathy") return getReviewReactionCount(b, "empathy") - getReviewReactionCount(a, "empathy") || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -110,10 +114,10 @@ export default function AcademyDetailPage() {
             </div>
             <div>
               <span><i className="info-icon school" aria-hidden="true" />주요 대비 대학</span>
-              <strong>{insights.schoolTagCounts.length > 0 ? insights.schoolTagCounts.slice(0, 4).map((item) => item.label).join(", ") : academy.schoolTags.length > 0 ? academy.schoolTags.map((tag) => tag.schoolName).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
+              <strong>{schoolLabels.length > 0 ? schoolLabels.slice(0, 4).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
             </div>
           </div>
-          <p className="type-note">{hasReviews ? "지금까지 등록된 리뷰를 바탕으로 정리한 정보입니다." : "기본 등록 정보를 보여 주고 있습니다. 리뷰가 쌓이면 데이터가 업데이트됩니다."}</p>
+          <p className="type-note">{schoolInfoNote}</p>
           {hasChannel && (
             <dl className="detail-list compact">
               {academy.officialWebsiteUrl && (
@@ -206,6 +210,12 @@ function getInstagramLabel(url: string | null) {
   } catch {
     return "인스타그램";
   }
+}
+
+function getSchoolInfoNote(hasReviewSchoolTags: boolean, hasInitialSchoolTags: boolean) {
+  if (hasReviewSchoolTags) return "지금까지 등록된 리뷰를 바탕으로 정리한 정보입니다.";
+  if (hasInitialSchoolTags) return "공개 자료를 바탕으로 정리한 1차 정보입니다. 리뷰가 쌓이면 자동으로 업데이트됩니다.";
+  return "기본 등록 정보를 보여 주고 있습니다. 리뷰가 쌓이면 데이터가 업데이트됩니다.";
 }
 
 function getKeywordGroups(reviews: Review[]) {

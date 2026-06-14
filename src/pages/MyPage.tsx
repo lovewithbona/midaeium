@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, type Academy, type Review, type ReviewStatus } from "../data/academies";
+import { getSchoolTagResearchByAcademyId } from "../data/academySchoolTagsInitial152";
 import { findUniversityByName, searchUniversities, suggestUniversitiesFromRawText } from "../data/universities";
 import { downloadAdminReviewExport } from "../utils/adminExport";
 import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
@@ -59,6 +60,7 @@ export default function MyPage() {
   const filteredReviews = useMemo(() => filterReviews(enrichedReviews, activeFilter), [enrichedReviews, activeFilter]);
   const selectedReview = filteredReviews.find((review) => review.id === selectedReviewId) || filteredReviews[0] || enrichedReviews[0];
   const selectedAcademy = selectedReview ? allAcademies.find((academy) => academy.id === selectedReview.academyId) : undefined;
+  const selectedAcademySchoolResearch = selectedAcademy ? getSchoolTagResearchByAcademyId(selectedAcademy.id) : null;
 
   const summary = useMemo(() => {
     const hiddenCount = enrichedReviews.filter((review) => review.status === "hidden" || review.status === "rejected").length;
@@ -309,6 +311,24 @@ export default function MyPage() {
               <section className="admin-editor-section">
                 <h3>주요 대비 대학</h3>
                 <p className="admin-raw-line">원문 강점 학교: <b>{selectedReview.schoolTextRaw || selectedReview.reviewSchoolTagsRaw?.join(", ") || "없음"}</b></p>
+                {selectedAcademySchoolResearch && (
+                  <div className="admin-school-research-box">
+                    <strong>초기 조사 데이터</strong>
+                    <p>조사 상태: {selectedAcademySchoolResearch.researchStatus}</p>
+                    <p>{selectedAcademySchoolResearch.researchMemo}</p>
+                    {selectedAcademySchoolResearch.schoolTags.length > 0 && (
+                      <div className="admin-school-research-list">
+                        {selectedAcademySchoolResearch.schoolTags.map((tag) => (
+                          <a key={`${tag.schoolName}-${tag.sourceUrl || tag.source}`} href={tag.sourceUrl || undefined} target="_blank" rel="noreferrer">
+                            <b>{tag.schoolName}</b>
+                            <span>{tag.source}</span>
+                            {tag.memo && <small>{tag.memo}</small>}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {suggestedSchools.length > 0 && (
                   <div className="admin-suggestion-row">
                     <span>추천 대학</span>

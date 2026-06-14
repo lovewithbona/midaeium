@@ -5,6 +5,8 @@
 
 import { academyChannelOverrides, type AcademyChannelConfidence } from "./academyChannelOverrides";
 import { reviewedAcademyDrafts } from "./adminReviewedData";
+import { additionalAcademySeeds100 } from "./additionalAcademies100";
+import { applyAcademySchoolTagResearch, type AcademySchoolTagSource } from "./academySchoolTagsInitial152";
 
 export type EntranceType =
   | "기초디자인"
@@ -23,12 +25,14 @@ export type EntranceType =
 export type ReviewStatus = "public" | "pending" | "held" | "rejected" | "hidden";
 export type TypeConfidence = "공식 확인" | "보조 출처 확인" | "이름 기반 1차 분류" | "확인 필요";
 export type SchoolTagCategory = "디자인" | "회화" | "조소" | "만화·애니" | "기타";
-export type SchoolTagSource = "운영자 입력" | "리뷰 기반" | "확인 필요";
+export type SchoolTagSource = AcademySchoolTagSource;
 
 export type SchoolTag = {
   schoolName: string;
-  category: SchoolTagCategory;
+  category?: SchoolTagCategory;
   source: SchoolTagSource;
+  sourceUrl?: string | null;
+  memo?: string;
   note?: string;
 };
 
@@ -51,6 +55,8 @@ export type AcademySeedWithTypes = {
   typeMemo: string;
   createdAt?: string;
   schoolTags?: SchoolTag[];
+  schoolTagResearchStatus?: "근거 확인" | "근거 부족";
+  schoolTagResearchMemo?: string;
 };
 
 export type AcademyWithChannels = AcademySeedWithTypes & {
@@ -61,6 +67,8 @@ export type AcademyWithChannels = AcademySeedWithTypes & {
   channelConfidence: AcademyChannelConfidence;
   channelMemo: string;
   channelSourceUrls: string[];
+  schoolTagResearchStatus?: "근거 확인" | "근거 부족";
+  schoolTagResearchMemo?: string;
 };
 
 export const academySeedsWithTypes: AcademySeedWithTypes[] = [
@@ -2796,13 +2804,64 @@ function normalizeReviewedAcademyDrafts(): Academy[] {
   }));
 }
 
+function normalizeAdditionalAcademies(): AcademySeedWithTypes[] {
+  return additionalAcademySeeds100.map((academy) => ({
+    id: academy.id,
+    name: academy.name,
+    region: academy.region,
+    district: academy.district,
+    location: academy.location,
+    address: academy.address,
+    homepageUrl: academy.homepageUrl,
+    mapSearchQuery: academy.mapSearchQuery,
+    sourceUrl: academy.sourceUrl,
+    verifiedStatus: academy.verifiedStatus,
+    note: [academy.sourceName, academy.note].filter(Boolean).join(" · "),
+    entranceTypes: academy.entranceTypes as EntranceType[],
+    strongTypes: academy.strongTypes as EntranceType[],
+    typeSourceUrl: null,
+    typeConfidence: "확인 필요",
+    typeMemo: "공개 출처 기반 추가 후보입니다. 운영 여부와 입시 유형은 검수 필요합니다.",
+    schoolTags: academy.schoolTags,
+  }));
+}
+
+function mergeAcademySeeds(baseAcademies: AcademySeedWithTypes[], extraAcademies: AcademySeedWithTypes[]) {
+  const academyMap = new Map<string, AcademySeedWithTypes>();
+
+  [...baseAcademies, ...extraAcademies].forEach((academy) => {
+    const nameAddressKey = `${normalizeAcademyDuplicateText(academy.name)}::${normalizeAcademyDuplicateText(academy.address)}`;
+    const duplicate = [...academyMap.values()].find((item) => (
+      item.id === academy.id
+      || `${normalizeAcademyDuplicateText(item.name)}::${normalizeAcademyDuplicateText(item.address)}` === nameAddressKey
+    ));
+
+    if (duplicate) {
+      console.warn("[midaeium] duplicate academy candidate skipped", { existing: duplicate.id, skipped: academy.id });
+      return;
+    }
+
+    academyMap.set(academy.id, academy);
+  });
+
+  return [...academyMap.values()];
+}
+
 function mergeAcademies(baseAcademies: Academy[], extraAcademies: Academy[]) {
   const academyMap = new Map<string, Academy>();
   [...baseAcademies, ...extraAcademies].forEach((academy) => academyMap.set(academy.id, academy));
   return [...academyMap.values()];
 }
 
-export const academies: Academy[] = mergeAcademies(applyAcademyChannelOverrides(academySeedsWithTypes), normalizeReviewedAcademyDrafts());
+function normalizeAcademyDuplicateText(value: string) {
+  return value.replace(/\s/g, "").replace(/미술학원|학원/g, "").toLowerCase();
+}
+
+const baseAcademySeeds = mergeAcademySeeds(academySeedsWithTypes, normalizeAdditionalAcademies());
+const academySeedsWithChannels = applyAcademyChannelOverrides(baseAcademySeeds);
+const academySeedsWithSchoolTagResearch = applyAcademySchoolTagResearch(academySeedsWithChannels);
+
+export const academies: Academy[] = mergeAcademies(academySeedsWithSchoolTagResearch, normalizeReviewedAcademyDrafts());
 
 export const regions = [
   "전체",

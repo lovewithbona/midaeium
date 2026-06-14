@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { type Academy } from "../data/academies";
+import { findUniversityByName } from "../data/universities";
 import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getReviewPreview } from "../utils/reviewStats";
 
@@ -8,7 +9,11 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
   const insights = getAcademyAggregatedInsights(academy.id);
   const strongTypes = insights.strongTypeCounts.length > 0 ? insights.strongTypeCounts.map((item) => item.label) : academy.strongTypes;
   const previewReview = reviews[0];
-  const typeTags = uniqueTags([...strongTypes.slice(0, 2), ...insights.schoolTagCounts.slice(0, 2).map((item) => item.label)]);
+  const schoolLabels = insights.schoolTagCounts.length > 0
+    ? insights.schoolTagCounts.slice(0, 3).map((item) => item.label)
+    : academy.schoolTags.slice(0, 3).map((item) => item.schoolName);
+  const schoolShortLabels = schoolLabels.map((label) => findUniversityByName(label)?.shortName || label);
+  const typeTags = uniqueTags(strongTypes.slice(0, 2));
   const reviewTags = uniqueTags(insights.topKeywordCounts.slice(0, 2).map((item) => item.label));
   const detailUrl = `/academies/${academy.id}`;
   const displayName = getAcademyDisplayName(academy);
@@ -37,6 +42,9 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
       <div className="academy-review-preview">
         <p>{previewReview ? getReviewPreview(previewReview, 80) : "아직 등록된 리뷰가 없습니다. 첫 리뷰를 남겨 주세요."}</p>
       </div>
+      {schoolShortLabels.length > 0 && (
+        <p className="academy-school-line">주요 대비 대학: {schoolShortLabels.join(" · ")}</p>
+      )}
       {academy.typeConfidence === "이름 기반 1차 분류" && <p className="type-note">1차 분류</p>}
       {academy.typeConfidence === "확인 필요" && <p className="type-note">전형 확인 필요</p>}
       <div className="card-footer">

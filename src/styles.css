@@ -834,6 +834,13 @@ p {
   line-height: 1.6;
 }
 
+.academy-school-line {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 .type-note {
   margin: -4px 0 0;
   color: var(--muted);
@@ -2437,6 +2444,46 @@ input::placeholder {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.admin-school-research-box {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #cfe0ff;
+  background: #f6f9ff;
+}
+
+.admin-school-research-box > strong {
+  color: var(--point);
+  font-size: 13px;
+}
+
+.admin-school-research-box p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.admin-school-research-list {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-school-research-list a {
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+}
+
+.admin-school-research-list span,
+.admin-school-research-list small {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .admin-suggestion-row span {
