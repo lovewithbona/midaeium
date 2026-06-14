@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, type Academy, type Review, type ReviewStatus } from "../data/academies";
 import { getSchoolTagResearchByAcademyId } from "../data/academySchoolTagsInitial152";
+import { surveyUnresolvedAcademyNames20260614 } from "../data/surveyAcademyMatchPlan";
 import { findUniversityByName, searchUniversities, suggestUniversitiesFromRawText } from "../data/universities";
 import { downloadAdminReviewExport } from "../utils/adminExport";
 import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
@@ -253,8 +254,25 @@ export default function MyPage() {
       </section>
 
       {adminSection === "reviews" && (
-      <section className="admin-workspace">
-        <aside className="admin-sidebar">
+      <>
+        <section className="admin-unresolved-panel">
+          <div>
+            <p className="eyebrow">지점 확인 필요</p>
+            <h2>구글폼 학원명 중 운영자 확인이 필요한 항목</h2>
+          </div>
+          <div className="admin-unresolved-list">
+            {surveyUnresolvedAcademyNames20260614.map((item) => (
+              <article key={item.academyNameRaw}>
+                <strong>{item.academyNameRaw}</strong>
+                <p>{item.reason}</p>
+                {item.candidateAcademyIds.length > 0 && <span>후보: {item.candidateAcademyIds.join(", ")}</span>}
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="admin-workspace">
+          <aside className="admin-sidebar">
           <div className="admin-filter-list" aria-label="검수 목록 필터">
             {(Object.keys(filterLabels) as AdminFilter[]).map((filter) => (
               <button
@@ -289,7 +307,7 @@ export default function MyPage() {
           </div>
         </aside>
 
-        <div className="admin-detail-panel">
+          <div className="admin-detail-panel">
           {selectedReview ? (
             <>
               <div className="admin-detail-head">
@@ -438,8 +456,9 @@ export default function MyPage() {
               <p>새 리뷰가 들어오면 이곳에서 학원 매칭과 대학명을 정리할 수 있습니다.</p>
             </div>
           )}
-        </div>
-      </section>
+          </div>
+        </section>
+      </>
       )}
 
       {adminSection === "infoReports" && (

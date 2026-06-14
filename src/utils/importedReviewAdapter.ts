@@ -1,6 +1,8 @@
 import { academies, type Academy, type Review, type ReviewStatus } from "../data/academies";
 import { reviewedImportedReviews, reviewedReviewOverrides } from "../data/adminReviewedData";
 import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/importedReviews";
+import { importedGoogleFormReviews20260614, type ImportedGoogleFormReview } from "../data/importedReviews20260614";
+import { surveyRawAcademyMatchMap20260614 } from "../data/surveyAcademyMatchPlan";
 import { normalizeUniversityName } from "../data/universities";
 import { getAdminAcademyDrafts, getModerationStatusOverride, getReviewAcademyMatchOverride, getReviewDetailPublicOverride, getReviewSchoolTagsOverride } from "./storage";
 
@@ -31,7 +33,7 @@ const academyAliases: Record<string, string> = {
 };
 
 export function getImportedReviewsAsReviews(): Review[] {
-  return importedReviewsFromGoogleForm.map(convertImportedReview);
+  return getMergedImportedReviews().map(convertImportedReview);
 }
 
 export function getImportedReviewMatch(review: ImportedFormReview) {
@@ -103,6 +105,11 @@ function matchAcademy(review: ImportedFormReview): MatchResult {
     return { academyId: overrideAcademyId, confidence: "alias" };
   }
 
+  const mappedAcademyId = surveyRawAcademyMatchMap20260614[review.academyNameRaw];
+  if (mappedAcademyId && allAcademies.some((academy) => academy.id === mappedAcademyId)) {
+    return { academyId: mappedAcademyId, confidence: "alias" };
+  }
+
   const rawKey = normalizeName(review.academyNameRaw);
   const nameKey = normalizeName(review.academyName);
   const aliasId = academyAliases[rawKey] || academyAliases[nameKey];
@@ -122,6 +129,68 @@ function matchAcademy(review: ImportedFormReview): MatchResult {
   if (fuzzy) return { academyId: fuzzy.id, confidence: "fuzzy" };
 
   return { academyId: `unmatched-${review.id}`, confidence: "unmatched" };
+}
+
+function getMergedImportedReviews(): ImportedFormReview[] {
+  const latestReviews = importedGoogleFormReviews20260614.map(convertGoogleFormReview20260614);
+  const latestSourceRows = new Set(latestReviews.map((review) => review.sourceRow));
+  const legacyReviews = importedReviewsFromGoogleForm.filter((review) => !latestSourceRows.has(review.sourceRow));
+
+  return [...latestReviews, ...legacyReviews];
+}
+
+function convertGoogleFormReview20260614(review: ImportedGoogleFormReview): ImportedFormReview {
+  return {
+    id: review.id,
+    sourceRow: review.sourceRow,
+    academyId: review.academyId,
+    academyNameRaw: review.academyNameRaw,
+    academyName: review.academyName,
+    writerStatus: review.writerStatus,
+    attendedYear: review.attendedYear,
+    attendedPeriod: review.attendedPeriod,
+    admissionResult: review.admissionResult,
+    preparedTypes: [],
+    strongTypes: (review as ImportedGoogleFormReview & { strongTypes?: string[] }).strongTypes || [],
+    reviewSchoolTags: review.reviewSchoolTags,
+    schoolTextRaw: review.schoolTextRaw,
+    rating: review.rating,
+    atmosphere: review.atmosphere,
+    atmosphereScore: Number(review.atmosphere) || 0,
+    assignmentAmount: review.assignmentAmount,
+    assignmentAmountScore: Number(review.assignmentAmount) || 0,
+    difficulty: review.difficulty,
+    feedbackTags: review.feedbackTags,
+    goodTags: review.goodTags,
+    concernTags: review.concernTags,
+    cautionTags: review.cautionTags,
+    teachingStyleTags: review.teachingStyleTags,
+    summary: "",
+    detailOriginal: review.detailOriginal,
+    detail: review.detail,
+    detailPublic: review.detailPublic || undefined,
+    likes: review.likes,
+    createdAt: normalizeGoogleFormTimestamp(review.timestamp),
+    status: review.status,
+    source: "google-form",
+    consent: {
+      publish: review.consentPublish === "예",
+      moderation: review.consentModeration === "예",
+    },
+    moderationFlags: review.moderationFlags,
+  };
+}
+
+function normalizeGoogleFormTimestamp(value: string) {
+  const match = value.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\s*(오전|오후)\s*(\d{1,2}):(\d{2}):(\d{2})/);
+  if (!match) return "2026-06-14T00:00:00+09:00";
+
+  const [, year, month, day, meridiem, rawHour, minute, second] = match;
+  let hour = Number(rawHour);
+  if (meridiem === "오후" && hour < 12) hour += 12;
+  if (meridiem === "오전" && hour === 12) hour = 0;
+
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${String(hour).padStart(2, "0")}:${minute}:${second}+09:00`;
 }
 
 function getAllAcademyCandidates() {

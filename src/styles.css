@@ -2810,6 +2810,44 @@ input::placeholder {
   color: inherit;
 }
 
+.admin-unresolved-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #eadf74;
+  background: #fffdf0;
+}
+
+.admin-unresolved-panel h2,
+.admin-unresolved-panel p {
+  margin: 0;
+}
+
+.admin-unresolved-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-unresolved-list article {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.admin-unresolved-list strong {
+  font-size: 14px;
+}
+
+.admin-unresolved-list p,
+.admin-unresolved-list span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .admin-inbox-panel {
   display: grid;
   gap: 16px;
@@ -3423,6 +3461,10 @@ input::placeholder {
 
   .admin-main-tabs {
     display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-unresolved-list {
     grid-template-columns: 1fr;
   }
 

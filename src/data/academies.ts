@@ -7,6 +7,7 @@ import { academyChannelOverrides, type AcademyChannelConfidence } from "./academ
 import { reviewedAcademyDrafts } from "./adminReviewedData";
 import { additionalAcademySeeds100 } from "./additionalAcademies100";
 import { applyAcademySchoolTagResearch, type AcademySchoolTagSource } from "./academySchoolTagsInitial152";
+import { surveyAdditionalAcademies20260614 } from "./surveyAcademyMatchPlan";
 
 export type EntranceType =
   | "기초디자인"
@@ -2804,6 +2805,35 @@ function normalizeReviewedAcademyDrafts(): Academy[] {
   }));
 }
 
+function normalizeSurveyAdditionalAcademies(): Academy[] {
+  return surveyAdditionalAcademies20260614.map((academy) => ({
+    id: academy.id,
+    name: academy.name,
+    region: academy.region,
+    district: academy.district,
+    location: academy.location,
+    address: academy.address,
+    homepageUrl: academy.homepageUrl,
+    mapSearchQuery: academy.mapSearchQuery,
+    sourceUrl: academy.sourceUrl,
+    verifiedStatus: academy.verifiedStatus,
+    note: academy.note,
+    entranceTypes: [],
+    strongTypes: [],
+    typeSourceUrl: null,
+    typeConfidence: "확인 필요",
+    typeMemo: "구글폼 최신 응답에서 확인된 신규 학원 후보입니다. 운영자 검수가 필요합니다.",
+    createdAt: "2026-06-14T00:00:00+09:00",
+    schoolTags: [],
+    officialWebsiteUrl: academy.homepageUrl,
+    instagramUrl: academy.instagramUrl,
+    naverBlogUrl: academy.naverBlogUrl,
+    channelConfidence: "확인 필요",
+    channelMemo: academy.note || "구글폼 최신 응답에서 확인된 공개 채널 후보입니다.",
+    channelSourceUrls: [academy.homepageUrl, academy.instagramUrl, academy.naverBlogUrl, academy.sourceUrl].filter(Boolean) as string[],
+  }));
+}
+
 function normalizeAdditionalAcademies(): AcademySeedWithTypes[] {
   return additionalAcademySeeds100.map((academy) => ({
     id: academy.id,
@@ -2861,7 +2891,10 @@ const baseAcademySeeds = mergeAcademySeeds(academySeedsWithTypes, normalizeAddit
 const academySeedsWithChannels = applyAcademyChannelOverrides(baseAcademySeeds);
 const academySeedsWithSchoolTagResearch = applyAcademySchoolTagResearch(academySeedsWithChannels);
 
-export const academies: Academy[] = mergeAcademies(academySeedsWithSchoolTagResearch, normalizeReviewedAcademyDrafts());
+export const academies: Academy[] = mergeAcademies(academySeedsWithSchoolTagResearch, [
+  ...normalizeSurveyAdditionalAcademies(),
+  ...normalizeReviewedAcademyDrafts(),
+]);
 
 export const regions = [
   "전체",
