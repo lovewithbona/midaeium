@@ -49,6 +49,8 @@ export default function AcademyDetailPage() {
   const homepageLabel = getHomepageLabel(academy.officialWebsiteUrl);
   const instagramLabel = getInstagramLabel(academy.instagramUrl);
   const hasChannel = Boolean(academy.officialWebsiteUrl || academy.instagramUrl || academy.naverBlogUrl);
+  const infoStatus = getInfoStatus(hasReviews, academy.verifiedStatus);
+  const lastCheckedAt = academy.createdAt ? academy.createdAt.slice(0, 10) : "2026-06-14";
 
   return (
     <PageLayout>
@@ -118,6 +120,13 @@ export default function AcademyDetailPage() {
             </div>
           </div>
           <p className="type-note">{schoolInfoNote}</p>
+          <p className="type-note">주요 대비 대학은 공개 자료와 지금까지 등록된 리뷰를 바탕으로 정리한 참고 정보입니다. 학원의 공식 합격률이나 성과를 의미하지 않습니다.</p>
+          <dl className="detail-list compact">
+            <dt>정보 마지막 확인일</dt>
+            <dd>{lastCheckedAt}</dd>
+            <dt>정보 확인 상태</dt>
+            <dd>{infoStatus}</dd>
+          </dl>
           {hasChannel && (
             <dl className="detail-list compact">
               {academy.officialWebsiteUrl && (
@@ -145,6 +154,10 @@ export default function AcademyDetailPage() {
             <strong>{academy.address}</strong>
             <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">네이버 지도 바로보기</a>
           </div>
+          <div className="report-link-box">
+            <p>정보가 다르다면 제보해 주세요.</p>
+            <Link className="secondary-button" to={`/report-info?academyId=${academy.id}`}>정보 수정 제보</Link>
+          </div>
         </div>
         )}
         {activeTab === "reviews" && (
@@ -153,6 +166,7 @@ export default function AcademyDetailPage() {
             <p className="eyebrow">리뷰 요약</p>
             <h2>등록된 리뷰 {reviewCount}개</h2>
             <p className="muted">리뷰에서 많이 선택된 태그를 먼저 확인해 보세요.</p>
+            <p className="type-note">리뷰는 학생 개인의 경험을 바탕으로 작성되며, 모든 학원에 동일하게 적용되는 평가가 아닐 수 있습니다.</p>
           </div>
           <div className="keyword-summary">
             <strong>많이 언급된 키워드</strong>
@@ -216,6 +230,12 @@ function getSchoolInfoNote(hasReviewSchoolTags: boolean, hasInitialSchoolTags: b
   if (hasReviewSchoolTags) return "지금까지 등록된 리뷰를 바탕으로 정리한 정보입니다.";
   if (hasInitialSchoolTags) return "공개 자료를 바탕으로 정리한 1차 정보입니다. 리뷰가 쌓이면 자동으로 업데이트됩니다.";
   return "기본 등록 정보를 보여 주고 있습니다. 리뷰가 쌓이면 데이터가 업데이트됩니다.";
+}
+
+function getInfoStatus(hasReviews: boolean, verifiedStatus: string) {
+  if (hasReviews) return "리뷰 기반";
+  if (verifiedStatus === "확인 완료") return "공개 자료 확인";
+  return "운영자 검수 중";
 }
 
 function getKeywordGroups(reviews: Review[]) {

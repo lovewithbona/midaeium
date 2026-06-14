@@ -1292,6 +1292,23 @@ label input::placeholder {
   overflow-wrap: anywhere;
 }
 
+.report-link-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.report-link-box p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .kakao-map-canvas {
   width: 100%;
   min-height: 240px;
@@ -1535,6 +1552,52 @@ label input::placeholder {
   background: var(--soft-2);
   color: var(--point-dark);
   opacity: 1;
+}
+
+.review-report-button {
+  min-height: 38px;
+  margin-left: auto;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(17, 17, 17, 0.38);
+}
+
+.report-modal {
+  width: min(100%, 520px);
+  padding: 28px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.report-modal form,
+.report-modal label {
+  display: grid;
+  gap: 12px;
+}
+
+.report-modal h2,
+.report-modal p {
+  margin-top: 0;
+}
+
+.report-modal textarea {
+  min-height: 120px;
+  padding: 14px 16px;
+  resize: vertical;
 }
 
 .notice-box {
@@ -2547,6 +2610,305 @@ input::placeholder {
   padding: 34px 22px;
 }
 
+.site-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(130px, 0.7fr));
+  gap: clamp(24px, 4vw, 54px);
+  margin-top: 48px;
+  padding: clamp(34px, 5vw, 56px) clamp(20px, 5vw, 56px);
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.footer-brand {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+}
+
+.footer-links {
+  display: contents;
+}
+
+.footer-brand strong {
+  font-size: 24px;
+}
+
+.footer-brand p,
+.footer-brand small,
+.footer-group a {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.footer-brand small {
+  display: block;
+}
+
+.footer-contact {
+  color: var(--text);
+  font-weight: 620;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.footer-group {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.footer-group strong {
+  font-size: 14px;
+}
+
+.footer-group a {
+  font-size: 14px;
+}
+
+.footer-group a:hover,
+.footer-group a:focus-visible {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.policy-page,
+.form-page {
+  display: grid;
+  gap: 22px;
+}
+
+.policy-hero,
+.policy-card,
+.form-card,
+.admin-inbox-panel {
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.policy-hero,
+.form-hero {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.policy-hero h1,
+.form-hero h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 58px);
+}
+
+.policy-hero p,
+.form-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.policy-card {
+  display: grid;
+  gap: 14px;
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.policy-card h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.policy-card p,
+.policy-card li {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.policy-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.policy-card strong {
+  color: var(--text);
+}
+
+.policy-note {
+  padding: 16px 18px;
+  border: 1px solid #cfe0ff;
+  background: #f6f9ff;
+}
+
+.form-card {
+  display: grid;
+  gap: 18px;
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.form-card label {
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 650;
+}
+
+.form-card textarea {
+  min-height: 132px;
+  padding: 14px 16px;
+  resize: vertical;
+}
+
+.inline-suggestion-list {
+  display: grid;
+  gap: 6px;
+  margin-top: -8px;
+}
+
+.inline-suggestion-list button {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  text-align: left;
+}
+
+.inline-suggestion-list span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-main-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-main-tabs button {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-weight: 620;
+}
+
+.admin-main-tabs button.active {
+  border-color: var(--point);
+  background: var(--point);
+  color: #fff;
+}
+
+.admin-main-tabs b {
+  margin-left: 6px;
+  color: inherit;
+}
+
+.admin-inbox-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.admin-inbox-head,
+.admin-inbox-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-inbox-head {
+  align-items: flex-end;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-inbox-head h2,
+.admin-inbox-head p,
+.admin-inbox-card h3 {
+  margin: 0;
+}
+
+.admin-inbox-head p {
+  color: var(--muted);
+}
+
+.admin-inbox-head > strong {
+  font-size: 22px;
+}
+
+.admin-inbox-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-inbox-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.admin-inbox-card-head {
+  align-items: flex-start;
+}
+
+.admin-inbox-card-head span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-inbox-card-head h3 {
+  margin-top: 5px;
+  font-size: 17px;
+}
+
+.admin-inbox-card-head label {
+  display: grid;
+  gap: 6px;
+  min-width: 150px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.admin-inbox-card-head select {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.admin-inbox-content {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-inbox-content div {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.admin-inbox-content dt,
+.admin-inbox-content dd {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.admin-inbox-content dd {
+  white-space: pre-wrap;
+}
+
 .guide-page {
   width: min(100%, 1120px);
   color: var(--text);
@@ -2823,7 +3185,8 @@ input::placeholder {
 @media (max-width: 980px) {
   .home-grid,
   .detail-grid,
-  .admin-workspace {
+  .admin-workspace,
+  .site-footer {
     grid-template-columns: 1fr;
   }
 
@@ -3026,6 +3389,8 @@ input::placeholder {
 
   .detail-hero,
   .mypage-hero,
+  .admin-inbox-head,
+  .admin-inbox-card-head,
   .section-title-row,
   .list-tools {
     align-items: flex-start;
@@ -3050,6 +3415,19 @@ input::placeholder {
   .detail-list {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .admin-inbox-content div {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-main-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer {
+    padding: 32px 18px;
   }
 
   .detail-list dd {

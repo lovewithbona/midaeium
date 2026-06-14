@@ -9,15 +9,25 @@ import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
 import {
   clearFakeUser,
   getAdminAcademyDrafts,
+  getAdminInboxStatus,
+  getContactRequests,
   getFakeUser,
+  getInfoReports,
+  getReviewReports,
   saveAdminAcademyDraft,
+  saveAdminInboxStatus,
   saveModerationStatus,
   saveReviewAcademyMatch,
   saveReviewDetailPublic,
   saveReviewSchoolTags,
+  type AdminInboxStatus,
+  type ContactRequest,
+  type InfoReport,
+  type ReviewReport,
 } from "../utils/storage";
 
 type AdminFilter = "all" | "pending" | "match" | "school" | "content" | "public" | "held" | "hidden";
+type AdminSection = "reviews" | "infoReports" | "reviewReports" | "contacts";
 
 const filterLabels: Record<AdminFilter, string> = {
   all: "전체",
@@ -44,6 +54,7 @@ export default function MyPage() {
   const navigate = useNavigate();
   const user = getFakeUser();
   const [tick, setTick] = useState(0);
+  const [adminSection, setAdminSection] = useState<AdminSection>("reviews");
   const [activeFilter, setActiveFilter] = useState<AdminFilter>("pending");
   const [selectedReviewId, setSelectedReviewId] = useState("");
   const [academyKeyword, setAcademyKeyword] = useState("");
@@ -56,6 +67,9 @@ export default function MyPage() {
 
   const allAcademies = useMemo(() => [...academies, ...getAdminAcademyDrafts()], [tick]);
   const reviews = useMemo(() => getAllReviews({ includePending: true }), [tick]);
+  const infoReports = useMemo(() => getInfoReports(), [tick]);
+  const reviewReports = useMemo(() => getReviewReports(), [tick]);
+  const contactRequests = useMemo(() => getContactRequests(), [tick]);
   const enrichedReviews = useMemo(() => reviews.map((review) => enrichReview(review, allAcademies)), [reviews, allAcademies]);
   const filteredReviews = useMemo(() => filterReviews(enrichedReviews, activeFilter), [enrichedReviews, activeFilter]);
   const selectedReview = filteredReviews.find((review) => review.id === selectedReviewId) || filteredReviews[0] || enrichedReviews[0];
@@ -109,6 +123,11 @@ export default function MyPage() {
 
   function refresh() {
     setTick((value) => value + 1);
+  }
+
+  function updateInboxStatus(itemId: string, status: AdminInboxStatus) {
+    saveAdminInboxStatus(itemId, status);
+    refresh();
   }
 
   function updateReviewStatus(reviewId: string, status: ReviewStatus) {
@@ -226,6 +245,14 @@ export default function MyPage() {
         <SummaryItem label="보류/제외" value={summary.held + summary.hidden} />
       </section>
 
+      <section className="admin-main-tabs" aria-label="운영자 메뉴">
+        <button type="button" className={adminSection === "reviews" ? "active" : ""} onClick={() => setAdminSection("reviews")}>리뷰 검수</button>
+        <button type="button" className={adminSection === "infoReports" ? "active" : ""} onClick={() => setAdminSection("infoReports")}>정보 수정 제보 <b>{infoReports.length}</b></button>
+        <button type="button" className={adminSection === "reviewReports" ? "active" : ""} onClick={() => setAdminSection("reviewReports")}>리뷰 신고 <b>{reviewReports.length}</b></button>
+        <button type="button" className={adminSection === "contacts" ? "active" : ""} onClick={() => setAdminSection("contacts")}>문의 내역 <b>{contactRequests.length}</b></button>
+      </section>
+
+      {adminSection === "reviews" && (
       <section className="admin-workspace">
         <aside className="admin-sidebar">
           <div className="admin-filter-list" aria-label="검수 목록 필터">
@@ -413,6 +440,37 @@ export default function MyPage() {
           )}
         </div>
       </section>
+      )}
+
+      {adminSection === "infoReports" && (
+        <AdminInboxPanel
+          title="정보 수정 제보"
+          description="잘못된 학원 정보, 링크, 주소, 전형 정보 제보를 확인합니다."
+          items={infoReports}
+          emptyText="아직 접수된 정보 수정 제보가 없습니다."
+          onStatusChange={updateInboxStatus}
+        />
+      )}
+
+      {adminSection === "reviewReports" && (
+        <AdminInboxPanel
+          title="리뷰 신고"
+          description="사용자가 신고한 리뷰를 확인하고 필요한 조치를 기록합니다."
+          items={reviewReports}
+          emptyText="아직 접수된 리뷰 신고가 없습니다."
+          onStatusChange={updateInboxStatus}
+        />
+      )}
+
+      {adminSection === "contacts" && (
+        <AdminInboxPanel
+          title="문의 내역"
+          description="서비스 문의, 개인정보 삭제 요청, 학원 정보 추가 요청을 확인합니다."
+          items={contactRequests}
+          emptyText="아직 접수된 문의가 없습니다."
+          onStatusChange={updateInboxStatus}
+        />
+      )}
     </PageLayout>
   );
 }
@@ -424,6 +482,106 @@ function SummaryItem({ label, value }: { label: string; value: number }) {
       <strong>{value}개</strong>
     </div>
   );
+}
+
+function AdminInboxPanel({
+  title,
+  description,
+  items,
+  emptyText,
+  onStatusChange,
+}: {
+  title: string;
+  description: string;
+  items: Array<InfoReport | ReviewReport | ContactRequest>;
+  emptyText: string;
+  onStatusChange: (itemId: string, status: AdminInboxStatus) => void;
+}) {
+  return (
+    <section className="admin-inbox-panel">
+      <div className="admin-inbox-head">
+        <div>
+          <p className="eyebrow">운영함</p>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+        <strong>{items.length}건</strong>
+      </div>
+
+      {items.length > 0 ? (
+        <div className="admin-inbox-list">
+          {items.map((item) => (
+            <article className="admin-inbox-card" key={item.id}>
+              <div className="admin-inbox-card-head">
+                <div>
+                  <span>{formatDate(item.createdAt)}</span>
+                  <h3>{getInboxTitle(item)}</h3>
+                </div>
+                <label>
+                  상태
+                  <select value={getAdminInboxStatus(item.id)} onChange={(event) => onStatusChange(item.id, event.target.value as AdminInboxStatus)}>
+                    {(["접수", "검토 중", "반영 완료", "보류", "제외"] as AdminInboxStatus[]).map((status) => <option key={status}>{status}</option>)}
+                  </select>
+                </label>
+              </div>
+              <div className="admin-inbox-content">
+                {"academyKeyword" in item && (
+                  <>
+                    <InfoLine label="대상 학원" value={item.academyKeyword || item.academyId || "입력 없음"} />
+                    <InfoLine label="문제가 있는 정보" value={item.problematicInfo} />
+                    <InfoLine label="수정이 필요한 내용" value={item.requestedChange} />
+                    <InfoLine label="참고 링크" value={item.referenceUrl} />
+                    <InfoLine label="연락 수단" value={item.contact} />
+                  </>
+                )}
+                {"reviewId" in item && (
+                  <>
+                    <InfoLine label="리뷰 ID" value={item.reviewId} />
+                    <InfoLine label="신고 사유" value={item.reason} />
+                    <InfoLine label="추가 설명" value={item.description || "없음"} />
+                  </>
+                )}
+                {"body" in item && (
+                  <>
+                    <InfoLine label="문의 유형" value={item.type} />
+                    <InfoLine label="제목" value={item.title} />
+                    <InfoLine label="내용" value={item.body} />
+                    <InfoLine label="관련 학원명" value={item.academyName} />
+                    <InfoLine label="참고 링크" value={item.referenceUrl} />
+                    <InfoLine label="연락 수단" value={item.contact} />
+                  </>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state compact-empty">
+          <h2>{emptyText}</h2>
+          <p>접수된 항목이 생기면 이곳에서 상태를 관리할 수 있습니다.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function InfoLine({ label, value }: { label: string; value?: string }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{value || "입력 없음"}</dd>
+    </div>
+  );
+}
+
+function getInboxTitle(item: InfoReport | ReviewReport | ContactRequest) {
+  if ("academyKeyword" in item) return item.type;
+  if ("reviewId" in item) return item.reason;
+  return item.title || item.type;
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" });
 }
 
 function enrichReview(review: Review, allAcademies: Academy[]) {

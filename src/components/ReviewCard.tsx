@@ -1,7 +1,18 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import type { Review } from "../data/academies";
-import { addReviewReaction, getReviewReactionCount, hasReactedToReview, type ReviewReactionType } from "../utils/storage";
+import { addReviewReaction, getReviewReactionCount, hasReactedToReview, saveReviewReport, type ReviewReactionType } from "../utils/storage";
 import { createHashtag, getReviewDisplayDetail, getReviewPreview, type KeywordTone } from "../utils/reviewStats";
+
+const reportReasons = [
+  "허위 리뷰로 의심돼요",
+  "학원 관계자가 작성한 것 같아요",
+  "특정인을 비방하는 내용이 있어요",
+  "개인정보가 포함되어 있어요",
+  "욕설 또는 모욕적인 표현이 있어요",
+  "광고성 내용이에요",
+  "학원과 관련 없는 내용이에요",
+  "기타",
+];
 
 export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
   const preview = getReviewPreview(review, 90);
@@ -18,6 +29,9 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
     },
   }));
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
+  const [reportForm, setReportForm] = useState({ reason: reportReasons[0], description: "" });
 
   function handleReaction(type: ReviewReactionType) {
     const didAdd = addReviewReaction(review.id, type);
@@ -31,6 +45,12 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       },
     }));
     onLike?.();
+  }
+
+  function handleReportSubmit(event: FormEvent) {
+    event.preventDefault();
+    saveReviewReport({ reviewId: review.id, reason: reportForm.reason, description: reportForm.description });
+    setReportDone(true);
   }
 
   return (
@@ -88,7 +108,31 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
         >
           도움돼요 {reactionState.helpful.count}
         </button>
+        <button className="review-report-button" type="button" onClick={() => setIsReportOpen(true)}>신고</button>
       </div>
+      {isReportOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="리뷰 신고">
+          <div className="report-modal">
+            {reportDone ? (
+              <>
+                <h2>신고가 접수되었습니다.</h2>
+                <p>운영자가 내용을 확인한 뒤 필요한 경우 리뷰를 수정, 비공개 또는 제외 처리할 수 있습니다.</p>
+                <button type="button" className="primary-button" onClick={() => setIsReportOpen(false)}>확인</button>
+              </>
+            ) : (
+              <form onSubmit={handleReportSubmit}>
+                <h2>리뷰 신고</h2>
+                <label>신고 사유<select value={reportForm.reason} onChange={(event) => setReportForm((current) => ({ ...current, reason: event.target.value }))}>{reportReasons.map((reason) => <option key={reason}>{reason}</option>)}</select></label>
+                <label>추가 설명<textarea value={reportForm.description} onChange={(event) => setReportForm((current) => ({ ...current, description: event.target.value }))} /></label>
+                <div className="button-row">
+                  <button type="submit" className="primary-button">제출하기</button>
+                  <button type="button" className="secondary-button" onClick={() => setIsReportOpen(false)}>취소</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </article>
   );
 }

@@ -8,6 +8,10 @@ const REVIEW_ACADEMY_MATCH_KEY = "midaeieum_review_academy_match_overrides";
 const REVIEW_DETAIL_PUBLIC_KEY = "midaeieum_review_detail_public_overrides";
 const REVIEW_SCHOOL_TAGS_KEY = "midaeieum_review_school_tag_overrides";
 const ADMIN_ACADEMY_DRAFTS_KEY = "midaeieum_admin_academy_drafts";
+const INFO_REPORTS_KEY = "midaeieum_info_reports";
+const REVIEW_REPORTS_KEY = "midaeieum_review_reports";
+const CONTACT_REQUESTS_KEY = "midaeieum_contact_requests";
+const ADMIN_INBOX_STATUS_KEY = "midaeieum_admin_inbox_status";
 const REVIEW_RESET_VERSION_KEY = "midaeieum_review_reset_version";
 const REVIEW_RESET_VERSION = "2026-06-13-clear-all-reviews";
 const USER_KEY = "midaeieum_fake_user";
@@ -15,6 +19,38 @@ export type ReviewReactionType = "empathy" | "helpful";
 
 export const DEMO_ADMIN_EMAIL = "admin@midaeium.kr";
 export const DEMO_ADMIN_PASSWORD = "midaeium2026";
+export type AdminInboxStatus = "접수" | "검토 중" | "반영 완료" | "보류" | "제외";
+
+export type InfoReport = {
+  id: string;
+  type: string;
+  academyId?: string;
+  academyKeyword: string;
+  problematicInfo: string;
+  requestedChange: string;
+  referenceUrl: string;
+  contact: string;
+  createdAt: string;
+};
+
+export type ReviewReport = {
+  id: string;
+  reviewId: string;
+  reason: string;
+  description: string;
+  createdAt: string;
+};
+
+export type ContactRequest = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  academyName: string;
+  referenceUrl: string;
+  contact: string;
+  createdAt: string;
+};
 
 export function resetReviewStorageIfNeeded() {
   if (typeof localStorage === "undefined") return;
@@ -188,6 +224,61 @@ export function saveAdminAcademyDraft(academy: Academy) {
   const next = [academy, ...drafts.filter((item) => item.id !== academy.id)];
   localStorage.setItem(ADMIN_ACADEMY_DRAFTS_KEY, JSON.stringify(next));
   return academy;
+}
+
+export function getInfoReports() {
+  return readLocalArray<InfoReport>(INFO_REPORTS_KEY);
+}
+
+export function saveInfoReport(report: Omit<InfoReport, "id" | "createdAt">) {
+  const nextReport: InfoReport = { ...report, id: `info-report-${Date.now()}`, createdAt: new Date().toISOString() };
+  localStorage.setItem(INFO_REPORTS_KEY, JSON.stringify([nextReport, ...getInfoReports()]));
+  return nextReport;
+}
+
+export function getReviewReports() {
+  return readLocalArray<ReviewReport>(REVIEW_REPORTS_KEY);
+}
+
+export function saveReviewReport(report: Omit<ReviewReport, "id" | "createdAt">) {
+  const nextReport: ReviewReport = { ...report, id: `review-report-${Date.now()}`, createdAt: new Date().toISOString() };
+  localStorage.setItem(REVIEW_REPORTS_KEY, JSON.stringify([nextReport, ...getReviewReports()]));
+  return nextReport;
+}
+
+export function getContactRequests() {
+  return readLocalArray<ContactRequest>(CONTACT_REQUESTS_KEY);
+}
+
+export function saveContactRequest(request: Omit<ContactRequest, "id" | "createdAt">) {
+  const nextRequest: ContactRequest = { ...request, id: `contact-request-${Date.now()}`, createdAt: new Date().toISOString() };
+  localStorage.setItem(CONTACT_REQUESTS_KEY, JSON.stringify([nextRequest, ...getContactRequests()]));
+  return nextRequest;
+}
+
+export function getAdminInboxStatusMap(): Record<string, AdminInboxStatus> {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_INBOX_STATUS_KEY) || "{}") as Record<string, AdminInboxStatus>;
+  } catch {
+    return {};
+  }
+}
+
+export function getAdminInboxStatus(itemId: string): AdminInboxStatus {
+  return getAdminInboxStatusMap()[itemId] || "접수";
+}
+
+export function saveAdminInboxStatus(itemId: string, status: AdminInboxStatus) {
+  const statuses = getAdminInboxStatusMap();
+  localStorage.setItem(ADMIN_INBOX_STATUS_KEY, JSON.stringify({ ...statuses, [itemId]: status }));
+}
+
+function readLocalArray<T>(key: string): T[] {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "[]") as T[];
+  } catch {
+    return [];
+  }
 }
 
 export function getFakeUser() {
