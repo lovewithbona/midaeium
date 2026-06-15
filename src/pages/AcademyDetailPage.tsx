@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import AcademyMapSection from "../components/AcademyMapSection";
 import PageLayout from "../components/PageLayout";
-import ReviewCard from "../components/ReviewCard";
+import SimpleReviewCard from "../components/SimpleReviewCard";
 import { academies } from "../data/academies";
 import type { Review } from "../data/academies";
 import { getAcademyDisplayName } from "../utils/academyDisplay";
@@ -14,7 +14,7 @@ export default function AcademyDetailPage() {
   const [params, setParams] = useSearchParams();
   const [, setLikeTick] = useState(0);
   const [reviewSort, setReviewSort] = useState("helpful");
-  const activeTab = params.get("tab") === "reviews" ? "reviews" : "info";
+  const activeTab = params.get("tab") === "info" ? "info" : "reviews";
   const academy = academies.find((item) => item.id === id);
 
   if (!academy) {
@@ -66,19 +66,19 @@ export default function AcademyDetailPage() {
       <div className="detail-tabs" aria-label="학원 상세 보기">
         <button
           type="button"
-          className={activeTab === "info" ? "active" : ""}
-          onClick={() => setParams({})}
-          aria-pressed={activeTab === "info"}
-        >
-          학원 정보
-        </button>
-        <button
-          type="button"
           className={activeTab === "reviews" ? "active" : ""}
-          onClick={() => setParams({ tab: "reviews" })}
+          onClick={() => setParams({})}
           aria-pressed={activeTab === "reviews"}
         >
           리뷰 {reviewCount}개
+        </button>
+        <button
+          type="button"
+          className={activeTab === "info" ? "active" : ""}
+          onClick={() => setParams({ tab: "info" })}
+          aria-pressed={activeTab === "info"}
+        >
+          학원 정보
         </button>
       </div>
       <section className="detail-grid">
@@ -139,12 +139,12 @@ export default function AcademyDetailPage() {
           <div className="review-summary-panel">
             <p className="eyebrow">리뷰 요약</p>
             <h2>등록된 리뷰 {reviewCount}개</h2>
+            <p className="review-note">리뷰는 학생 개인의 경험을 바탕으로 작성됩니다.</p>
             <div className="review-average-grid" aria-label="리뷰 평균 요약">
-              <ReviewAverageCard title="분위기" summary={reviewAverages.atmosphere} />
-              <ReviewAverageCard title="과제량" summary={reviewAverages.homeworkLoad} />
-              <ReviewAverageCard title="난이도" summary={reviewAverages.classLevel} />
+              <MiniRatingScale label="분위기" value={reviewAverages.atmosphere.average} minLabel="매우 진지해요" maxLabel="매우 자유로워요" />
+              <MiniRatingScale label="과제량" value={reviewAverages.homeworkLoad.average} minLabel="적은 편이에요" maxLabel="많은 편이에요" />
+              <MiniRatingScale label="난이도" value={reviewAverages.classLevel.average} minLabel="초보자에게 적합" maxLabel="상급자에게 적합" />
             </div>
-            <p className="type-note">리뷰는 학생 개인의 경험을 바탕으로 작성되며, 모든 학원에 동일하게 적용되는 평가가 아닐 수 있습니다.</p>
           </div>
           <div className="keyword-summary">
             <strong>많이 언급된 키워드</strong>
@@ -155,7 +155,9 @@ export default function AcademyDetailPage() {
                     <span>{group.title}</span>
                     <div className="review-tags review-tags-inline">
                       {group.items.map((item) => (
-                        <span className={`review-tag ${item.tone}`} key={`${group.title}-${item.label}`}>{createHashtag(item.label)} {item.count}</span>
+                        <span className={`review-tag ${item.tone}`} key={`${group.title}-${item.label}`}>
+                          {createHashtag(item.label)} · <strong>{item.count}</strong>
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -173,7 +175,7 @@ export default function AcademyDetailPage() {
             </label>
           </div>
           <div className="review-list">
-            {sortedReviews.length > 0 ? sortedReviews.map((review) => <ReviewCard key={review.id} review={review} onLike={() => setLikeTick((value) => value + 1)} />) : <p className="muted">아직 이 학원에 등록된 리뷰가 없어요.</p>}
+            {sortedReviews.length > 0 ? sortedReviews.map((review) => <SimpleReviewCard key={review.id} review={review} onReact={() => setLikeTick((value) => value + 1)} />) : <p className="muted">아직 이 학원에 등록된 리뷰가 없어요.</p>}
           </div>
         </div>
         )}
@@ -256,7 +258,7 @@ function getKeywordGroups(reviews: Review[]) {
 
 type ReviewAverageSummary = {
   label: string;
-  averageText: string;
+  average: number | null;
   count: number;
 };
 
@@ -264,12 +266,22 @@ const atmosphereScale = ["매우 진지해요", "진지한 편이에요", "보�
 const homeworkLoadScale = ["없어요", "적은 편이에요", "적당해요", "많은 편이에요", "매우 많아요"];
 const classLevelScale = ["입문자도 가능해요", "기본기가 있으면 좋아요", "어느 정도 실력이 필요해요", "상급자에게 적합해요 (초보자 비추)"];
 
-function ReviewAverageCard({ title, summary }: { title: string; summary: ReviewAverageSummary }) {
+function MiniRatingScale({ label, value, minLabel, maxLabel, max = 5 }: { label: string; value: number | null; minLabel: string; maxLabel: string; max?: number }) {
+  const percent = value ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
+
   return (
-    <div className="review-average-card">
-      <span>{title}</span>
-      <strong>{summary.label}</strong>
-      <small>{summary.count > 0 ? `${summary.averageText} · 리뷰 ${summary.count}개 기준` : "공개 리뷰가 쌓이면 표시됩니다."}</small>
+    <div className="mini-rating-scale">
+      <div className="mini-rating-head">
+        <span>{label}</span>
+        {value ? <strong>평균 {value.toFixed(1)} / {max}</strong> : <strong>아직 리뷰가 충분하지 않습니다.</strong>}
+      </div>
+      <div className="mini-rating-track" aria-hidden="true">
+        <span style={{ width: `${percent}%` }} />
+      </div>
+      <div className="mini-rating-labels">
+        <span>{minLabel}</span>
+        <span>{maxLabel}</span>
+      </div>
     </div>
   );
 }
@@ -290,7 +302,7 @@ function summarizeReviewScale(values: Array<string | undefined>, labels: string[
   if (scores.length === 0) {
     return {
       label: "아직 데이터 없음",
-      averageText: "",
+      average: null,
       count: 0,
     };
   }
@@ -300,7 +312,7 @@ function summarizeReviewScale(values: Array<string | undefined>, labels: string[
 
   return {
     label: labels[labelIndex],
-    averageText: `평균 ${average.toFixed(1)} / ${labels.length}`,
+    average,
     count: scores.length,
   };
 }

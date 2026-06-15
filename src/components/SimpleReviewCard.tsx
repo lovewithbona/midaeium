@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import type { Review } from "../data/academies";
-import { addReviewReaction, getReviewReactionCount, hasReactedToReview, saveReviewReport, type ReviewReactionType } from "../utils/storage";
 import { getReviewDisplayDetail } from "../utils/reviewStats";
+import { addReviewReaction, getReviewReactionCount, hasReactedToReview, saveReviewReport, type ReviewReactionType } from "../utils/storage";
 
 const reportReasons = [
   "허위 리뷰로 의심돼요",
@@ -14,9 +14,7 @@ const reportReasons = [
   "기타",
 ];
 
-export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
-  const displayDetail = getReviewDisplayDetail(review);
-  const metaText = getReviewMetaText(review);
+export default function SimpleReviewCard({ review, onReact }: { review: Review; onReact?: () => void }) {
   const [reactionState, setReactionState] = useState(() => ({
     helpful: {
       active: hasReactedToReview(review.id, "helpful"),
@@ -30,6 +28,8 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportDone, setReportDone] = useState(false);
   const [reportForm, setReportForm] = useState({ reason: reportReasons[0], description: "" });
+  const detail = getReviewDisplayDetail(review);
+  const metaText = getReviewMetaText(review);
 
   function handleReaction(type: ReviewReactionType) {
     const didAdd = addReviewReaction(review.id, type);
@@ -42,7 +42,7 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
         count: current[type].count + 1,
       },
     }));
-    onLike?.();
+    onReact?.();
   }
 
   function handleReportSubmit(event: FormEvent) {
@@ -52,44 +52,41 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   }
 
   return (
-    <article className="review-card">
-      <div className="review-head">
-        {metaText && <strong>{metaText}</strong>}
-        {review.status === "pending" && <span className="status-pill">검토 대기</span>}
-        {review.status === "held" && <span className="status-pill muted-pill">보류</span>}
-        {(review.status === "rejected" || review.status === "hidden") && <span className="status-pill muted-pill">제외됨</span>}
+    <article className="simple-review-card">
+      <div className="simple-review-top">
+        <div>
+          {metaText && <strong>{metaText}</strong>}
+          <div className="heart-readout" aria-label={`만족도 ${review.rating || 0}점`}>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <span key={index} className={index < (review.rating || 0) ? "filled" : ""} aria-hidden="true">♥</span>
+            ))}
+          </div>
+        </div>
+        <div className="simple-reaction-buttons" aria-label="리뷰 반응">
+          <button
+            type="button"
+            className={reactionState.helpful.active ? "active" : ""}
+            onClick={() => handleReaction("helpful")}
+            disabled={reactionState.helpful.active}
+            aria-label={`이 리뷰가 도움이 돼요 ${reactionState.helpful.count}`}
+            aria-pressed={reactionState.helpful.active}
+          >
+            <span aria-hidden="true">👍</span>
+          </button>
+          <button
+            type="button"
+            className={reactionState.downvote.active ? "active" : ""}
+            onClick={() => handleReaction("downvote")}
+            disabled={reactionState.downvote.active}
+            aria-label={`이 리뷰가 도움이 되지 않아요 ${reactionState.downvote.count}`}
+            aria-pressed={reactionState.downvote.active}
+          >
+            <span aria-hidden="true">👎</span>
+          </button>
+        </div>
       </div>
-      <div className="heart-readout" aria-label={`만족도 ${review.rating || 0}점`}>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <span key={index} className={index < (review.rating || 0) ? "filled" : ""} aria-hidden="true">♥</span>
-        ))}
-      </div>
-      <div className="review-body">
-        {displayDetail && (
-          <p className="review-full-text">{displayDetail}</p>
-        )}
-      </div>
-      <div className="review-reaction-row" aria-label="리뷰 반응">
-        <button
-          className={`review-reaction-button ${reactionState.helpful.active ? "active" : ""}`}
-          type="button"
-          onClick={() => handleReaction("helpful")}
-          disabled={reactionState.helpful.active}
-          aria-pressed={reactionState.helpful.active}
-        >
-          따봉 {reactionState.helpful.count}
-        </button>
-        <button
-          className={`review-reaction-button ${reactionState.downvote.active ? "active" : ""}`}
-          type="button"
-          onClick={() => handleReaction("downvote")}
-          disabled={reactionState.downvote.active}
-          aria-pressed={reactionState.downvote.active}
-        >
-          따봉 아래로 {reactionState.downvote.count}
-        </button>
-        <button className="review-report-button" type="button" onClick={() => setIsReportOpen(true)}>신고</button>
-      </div>
+      {detail && <p className="review-full-text">{detail}</p>}
+      <button className="review-report-button simple-report-button" type="button" onClick={() => setIsReportOpen(true)}>신고</button>
       {isReportOpen && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="리뷰 신고">
           <div className="report-modal">
@@ -117,7 +114,7 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   );
 }
 
-function getReviewMetaText(review: Review) {
+export function getReviewMetaText(review: Review) {
   const parts = [];
 
   if (review.writerStatus) parts.push(review.writerStatus);

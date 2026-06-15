@@ -2,7 +2,12 @@ import { Link } from "react-router-dom";
 import { type Academy } from "../data/academies";
 import { findUniversityByName } from "../data/universities";
 import { getAcademyDisplayLocation, getAcademyDisplayName } from "../utils/academyDisplay";
-import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getReviewPreview } from "../utils/reviewStats";
+import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getReviewDisplayDetail } from "../utils/reviewStats";
+
+type CardTag = {
+  label: string;
+  tone: "school" | "feedback" | "good" | "concern" | "caution";
+};
 
 export default function AcademyCard({ academy }: { academy: Academy }) {
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
@@ -11,11 +16,12 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
   const schoolLabels = insights.schoolTagCounts.length > 0
     ? insights.schoolTagCounts.slice(0, 3).map((item) => item.label)
     : academy.schoolTags.slice(0, 3).map((item) => item.schoolName);
-  const schoolTags = uniqueTags(schoolLabels.map(getShortSchoolLabel));
+  const schoolTags: CardTag[] = uniqueTags(schoolLabels.map(getShortSchoolLabel)).map((label) => ({ label, tone: "school" }));
   const detailUrl = `/academies/${academy.id}`;
   const displayName = getAcademyDisplayName(academy);
   const displayLocation = getAcademyDisplayLocation(academy);
   const ratingText = reviewCount > 0 ? `${averageRating.toFixed(1)}(리뷰 ${reviewCount}개)` : "리뷰 없음";
+  const previewText = previewReview ? getReviewDisplayDetail(previewReview) : "";
 
   return (
     <Link
@@ -31,17 +37,16 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
       </div>
       <div className="academy-hashtags" aria-label="학원 특징">
         {schoolTags.map((tag) => (
-          <span className="tag tag--school" key={tag}>{tag}</span>
+          <span className={`tag tag--${tag.tone}`} key={tag.label}>{tag.label}</span>
         ))}
         {schoolTags.length === 0 && <span className="academy-hashtag-placeholder">주요 대비 대학 업데이트 예정</span>}
       </div>
       <div className="academy-review-preview">
-        <p>{previewReview ? getReviewPreview(previewReview, 80) : "아직 등록된 리뷰가 없습니다. 첫 리뷰를 남겨 주세요."}</p>
+        <p>{previewText || "아직 등록된 리뷰가 없습니다. 첫 리뷰를 남겨 주세요."}</p>
       </div>
       {academy.typeConfidence === "이름 기반 1차 분류" && <p className="type-note">1차 분류</p>}
       <div className="card-footer">
         <span>리뷰 {reviewCount}개</span>
-        <span>{reviewCount > 0 ? `평균 ♥ ${averageRating.toFixed(1)}` : "아직 하트 평가가 없어요."}</span>
       </div>
     </Link>
   );
