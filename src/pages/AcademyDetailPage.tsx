@@ -6,7 +6,7 @@ import ReviewCard from "../components/ReviewCard";
 import { academies } from "../data/academies";
 import type { Review } from "../data/academies";
 import { getAcademyDisplayName } from "../utils/academyDisplay";
-import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getRepresentativeReview } from "../utils/reviewStats";
+import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats } from "../utils/reviewStats";
 import { getReviewReactionCount } from "../utils/storage";
 
 export default function AcademyDetailPage() {
@@ -30,7 +30,6 @@ export default function AcademyDetailPage() {
 
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
   const insights = getAcademyAggregatedInsights(academy.id);
-  const representativeReview = getRepresentativeReview(reviews);
   const hasReviews = reviewCount > 0;
   const displayName = getAcademyDisplayName(academy);
   const preparedLabels = insights.preparedTypeCounts.length > 0 ? insights.preparedTypeCounts : academy.entranceTypes.map((label) => ({ label, count: 0 }));
@@ -61,22 +60,8 @@ export default function AcademyDetailPage() {
             {hasReviews ? <strong>평균 하트 {averageRating.toFixed(1)} / 5</strong> : <strong>아직 하트 평가가 없어요.</strong>}
             <span>리뷰 {reviewCount}개</span>
           </div>
-          <div className="featured-review-box">
-            {representativeReview ? (
-              <>
-                <span>{representativeReview.title}</span>
-                <p>“{representativeReview.preview}”</p>
-                <small>{representativeReview.review.writerStatus || "작성자"}</small>
-              </>
-            ) : (
-              <>
-                <span>대표 리뷰</span>
-                <p>아직 대표 리뷰가 없어요. 첫 리뷰를 남겨 주세요.</p>
-              </>
-            )}
-          </div>
         </div>
-        <Link className="primary-button" to="/review/new">리뷰 등록하기</Link>
+        <Link className="primary-button detail-review-cta" to={`/review/new?academyId=${academy.id}`}>이 학원 리뷰 등록하기</Link>
       </section>
       <div className="detail-tabs" aria-label="학원 상세 보기">
         <button

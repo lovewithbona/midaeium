@@ -302,7 +302,8 @@ p {
 }
 
 .home-count-banner {
-  display: block;
+  display: grid;
+  gap: 10px;
   max-width: 760px;
   padding: 0;
   border: 0;
@@ -517,6 +518,19 @@ p {
   margin: 0;
   color: var(--text);
   line-height: 1.65;
+}
+
+.detail-review-cta {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  color: #fff;
+}
+
+.detail-review-cta:hover,
+.detail-review-cta:focus-visible {
+  border-color: #5b21b6;
+  background: #5b21b6;
+  color: #fff;
 }
 
 .review-summary-panel {
@@ -750,6 +764,7 @@ p {
 .academy-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 14px;
 }
 
@@ -820,10 +835,11 @@ p {
 }
 
 .academy-card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   max-width: 100%;
-  min-height: 0;
+  min-height: 370px;
   min-width: 0;
   padding: 24px;
   cursor: pointer;
@@ -845,6 +861,21 @@ p {
   gap: 14px;
   margin-bottom: 0;
   padding: 0;
+}
+
+.card-top h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0 0 10px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.academy-location-rating {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .academy-card .info-grid {
@@ -886,18 +917,35 @@ p {
   color: var(--text);
 }
 
+.tag--school {
+  border: 1px solid rgba(141, 124, 255, 0.28);
+  background: #f4f2ff;
+  color: var(--tag-text);
+}
+
 .academy-hashtags {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 8px;
+  min-height: 42px;
+}
+
+.academy-hashtag-placeholder {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .academy-review-preview {
   display: grid;
   gap: 6px;
+  min-height: 116px;
+  max-height: 116px;
   padding: 16px;
   border: 1px solid var(--line);
   background: #fafafa;
+  overflow: hidden;
 }
 
 .academy-review-preview span {
@@ -906,9 +954,14 @@ p {
 }
 
 .academy-review-preview p {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 0;
   color: var(--text);
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
 }
 
 .academy-school-line {
@@ -922,6 +975,10 @@ p {
   margin: -4px 0 0;
   color: var(--muted);
   font-size: 12px;
+}
+
+.academy-card .card-footer {
+  margin-top: auto;
 }
 
 .info-grid,
@@ -1750,6 +1807,35 @@ input::placeholder {
 
 .choice-toolbar + .form-grid {
   margin-top: 22px;
+}
+
+.selected-academy-box {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid rgba(124, 58, 237, 0.38);
+  background: #f7f3ff;
+}
+
+.selected-academy-box > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.selected-academy-box strong {
+  color: var(--text);
+  font-size: 20px;
+}
+
+.selected-academy-box p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.selected-academy-box .secondary-button {
+  width: fit-content;
+  margin-top: 8px;
 }
 
 .verification-intro {

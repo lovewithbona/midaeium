@@ -1,10 +1,10 @@
 import { Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
 import type { Review } from "../data/academies";
 import { findUniversityByName, searchUniversities } from "../data/universities";
-import { getAcademyDisplayName } from "../utils/academyDisplay";
+import { getAcademyDisplayLocation, getAcademyDisplayName } from "../utils/academyDisplay";
 import { saveStoredReview } from "../utils/storage";
 
 const moods = ["매우 진지해요", "진지한 편이에요", "보통이에요", "자유로운 편이에요", "매우 자유로워요"];
@@ -19,8 +19,11 @@ const admissionResults = ["", "합격", "불합격"];
 const MIN_DETAIL_LENGTH = 100;
 
 export default function ReviewNewPage() {
-  const [academyId, setAcademyId] = useState("");
-  const [keyword, setKeyword] = useState("");
+  const [searchParams] = useSearchParams();
+  const presetAcademyId = searchParams.get("academyId") || "";
+  const presetAcademy = useMemo(() => academies.find((academy) => academy.id === presetAcademyId), [presetAcademyId]);
+  const [academyId, setAcademyId] = useState(() => presetAcademy?.id || "");
+  const [keyword, setKeyword] = useState(() => presetAcademy ? getAcademyDisplayName(presetAcademy) : "");
   const [isNewAcademy, setIsNewAcademy] = useState(false);
   const [done, setDone] = useState(false);
   const [preparedTypes, setPreparedTypes] = useState<string[]>([]);
@@ -57,6 +60,7 @@ export default function ReviewNewPage() {
   const [formErrors, setFormErrors] = useState<{ key: string; message: string }[]>([]);
   const detailLength = form.detail.trim().length;
   const schoolSearchResults = useMemo(() => searchUniversities(schoolKeyword, 8), [schoolKeyword]);
+  const selectedAcademy = useMemo(() => academies.find((academy) => academy.id === academyId), [academyId]);
 
   useEffect(() => {
     if (formErrors.length === 0) return;
@@ -104,6 +108,12 @@ export default function ReviewNewPage() {
     setCustomSchoolName("");
   }
 
+  function clearSelectedAcademy() {
+    setAcademyId("");
+    setKeyword("");
+    setIsNewAcademy(false);
+  }
+
   function updateVerificationCheck(name: keyof typeof verificationChecks, checked: boolean) {
     setVerificationChecks((current) => ({ ...current, [name]: checked }));
   }
@@ -111,7 +121,6 @@ export default function ReviewNewPage() {
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setFormErrors([]);
-    const selectedAcademy = academies.find((academy) => academy.id === academyId);
     const academyName = isNewAcademy ? form.newName.trim() : selectedAcademy ? getAcademyDisplayName(selectedAcademy) : "";
     const targetAcademyId = isNewAcademy ? `new-${Date.now()}` : academyId;
 
@@ -231,7 +240,16 @@ export default function ReviewNewPage() {
           <p className="step-kicker">1단계</p>
           <h2 data-error-key="academy">학원 선택 <RequiredMark /></h2>
           <ErrorMessage formErrors={formErrors} targetKeys={["academy", "newName", "newAddress"]} />
-          {!isNewAcademy ? (
+          {selectedAcademy && !isNewAcademy ? (
+            <div className="selected-academy-box">
+              <span>선택된 학원</span>
+              <strong>{getAcademyDisplayName(selectedAcademy)}</strong>
+              <p>{getAcademyDisplayLocation(selectedAcademy)}</p>
+              <button type="button" className="secondary-button" onClick={clearSelectedAcademy}>
+                학원 변경하기
+              </button>
+            </div>
+          ) : !isNewAcademy ? (
             <div className="choice-toolbar">
               <label>
                 <LabelText required>학원명 검색</LabelText>
@@ -251,14 +269,14 @@ export default function ReviewNewPage() {
               </button>
             </div>
           )}
-          {!isNewAcademy && (
+          {!isNewAcademy && !selectedAcademy && (
             <div className="result-options">
               {keyword.trim() && filteredAcademies.length === 0 && <p className="muted wide">검색 결과가 없습니다. 새 학원 추가하기를 눌러 등록해 주세요.</p>}
               {filteredAcademies.map((academy) => (
                 <label key={academy.id} className={`radio-card ${academyId === academy.id ? "selected" : ""}`}>
                   <input type="radio" checked={academyId === academy.id} onChange={() => setAcademyId(academy.id)} />
                   <span>{getAcademyDisplayName(academy)}</span>
-                  <small>{academy.location}</small>
+                  <small>{getAcademyDisplayLocation(academy)}</small>
                   {academyId === academy.id && <b>선택됨</b>}
                 </label>
               ))}

@@ -47,6 +47,20 @@ export function getAcademyDisplayName(academy: Academy) {
   ].reduce((currentName, placeName) => moveLeadingPlaceName(currentName, placeName) || currentName, academy.name);
 }
 
+export function getAcademyDisplayLocation(academy: Academy) {
+  const location = compactLocation(academy.location);
+  if (location) return location;
+
+  return [academy.region, academy.district].filter(Boolean).join(" ");
+}
+
+function compactLocation(value: string) {
+  return value
+    .split("/")
+    .map((part) => part.trim())
+    .find(Boolean) || "";
+}
+
 function normalizePlaceName(name: string) {
   return name.replace(/(특별시|광역시|특별자치시|특별자치도|시|군|구)$/u, "");
 }

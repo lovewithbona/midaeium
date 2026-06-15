@@ -16,6 +16,7 @@ export default function HomePage() {
           <h1>한국의 모든 미대 입시생들을 위해서!</h1>
           <h2>지역과 전형에 맞는 학원을 찾고,<br />실제 학생 리뷰를 비교해 보세요.</h2>
           <div className="home-count-banner" aria-label={`현재 미대이음에는 ${academyCount}개의 학원과 ${reviewCount}개의 리뷰가 등록되어 있어요.`}>
+            <p aria-hidden="true">현재 미대이음에는</p>
             <div className="home-count-cards" aria-hidden="true">
               <div className="home-count-card">
                 <strong><AnimatedNumber value={academyCount} /></strong>
@@ -26,6 +27,7 @@ export default function HomePage() {
                 <span>개의 리뷰</span>
               </div>
             </div>
+            <p aria-hidden="true">가 등록되어 있어요.</p>
           </div>
         </div>
         <SearchBar buttonLabel="학원 검색하기" />
