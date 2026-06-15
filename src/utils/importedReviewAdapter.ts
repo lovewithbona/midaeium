@@ -2,6 +2,7 @@ import { academies, type Academy, type Review, type ReviewStatus } from "../data
 import { reviewedImportedReviews, reviewedReviewOverrides } from "../data/adminReviewedData";
 import { importedGoogleFormReviews20260615New, type ImportedGoogleFormReviewNew } from "../data/googleFormReviews20260615New";
 import { reviewAcademyAliases20260615New } from "../data/googleFormAcademyMatches20260615New";
+import { academyNameNormalizations } from "../data/academyNameNormalization";
 import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/importedReviews";
 import { importedGoogleFormReviews20260614, type ImportedGoogleFormReview } from "../data/importedReviews20260614";
 import { surveyRawAcademyMatchMap20260614 } from "../data/surveyAcademyMatchPlan";
@@ -34,6 +35,13 @@ const academyAliases: Record<string, string> = {
   대구수성클라우드학원: "daegu-suseong-cloud",
   대구창조의아침: "daegu-suseong-changa",
   ...Object.fromEntries(Object.entries(reviewAcademyAliases20260615New).map(([name, academyId]) => [normalizeName(name), academyId])),
+  ...Object.fromEntries(academyNameNormalizations.flatMap((item) => [
+    item.originalName,
+    item.normalizedName,
+    item.baseName,
+    item.canonicalBrand,
+    ...item.aliases,
+  ].filter(Boolean).map((name) => [normalizeName(name), item.academyId]))),
 };
 
 export function getImportedReviewsAsReviews(): Review[] {

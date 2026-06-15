@@ -5,7 +5,7 @@ import { academies, regions, type Academy, type Review, type ReviewStatus } from
 import { getSchoolTagResearchByAcademyId } from "../data/academySchoolTagsInitial152";
 import { surveyUnresolvedAcademyNames20260614 } from "../data/surveyAcademyMatchPlan";
 import { findUniversityByName, searchUniversities, suggestUniversitiesFromRawText } from "../data/universities";
-import { getAcademyDisplayName } from "../utils/academyDisplay";
+import { getAcademyDisplayAliases, getAcademyDisplayName } from "../utils/academyDisplay";
 import { downloadAdminReviewExport } from "../utils/adminExport";
 import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
 import {
@@ -96,7 +96,7 @@ export default function MyPage() {
     const keyword = academyKeyword.trim();
     if (!keyword) return [];
     return allAcademies
-      .filter((academy) => [academy.name, getAcademyDisplayName(academy), academy.location, academy.address, academy.region, academy.district].some((text) => text.includes(keyword)))
+      .filter((academy) => [academy.name, getAcademyDisplayName(academy), ...getAcademyDisplayAliases(academy), academy.location, academy.address, academy.region, academy.district].some((text) => text.includes(keyword)))
       .slice(0, 8);
   }, [academyKeyword, allAcademies]);
 

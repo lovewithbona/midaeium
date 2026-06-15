@@ -2,7 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies } from "../data/academies";
-import { getAcademyDisplayName } from "../utils/academyDisplay";
+import { getAcademyDisplayAliases, getAcademyDisplayName } from "../utils/academyDisplay";
 import { saveInfoReport } from "../utils/storage";
 
 const reportTypes = [
@@ -32,7 +32,7 @@ export default function ReportInfoPage() {
   const academySuggestions = useMemo(() => {
     const keyword = form.academyKeyword.trim();
     if (!keyword) return [];
-    return academies.filter((item) => [item.name, getAcademyDisplayName(item), item.address, item.location].some((text) => text.includes(keyword))).slice(0, 5);
+    return academies.filter((item) => [item.name, getAcademyDisplayName(item), ...getAcademyDisplayAliases(item), item.address, item.location].some((text) => text.includes(keyword))).slice(0, 5);
   }, [form.academyKeyword]);
 
   function updateField(name: keyof typeof form, value: string) {

@@ -1,4 +1,7 @@
 import type { Academy } from "../data/academies";
+import { academyNameNormalizations } from "../data/academyNameNormalization";
+
+const academyNameNormalizationMap = new Map(academyNameNormalizations.map((item) => [item.academyId, item]));
 
 const leadingPlaceNames = [
   "강남",
@@ -37,6 +40,9 @@ const leadingPlaceNames = [
 ];
 
 export function getAcademyDisplayName(academy: Academy) {
+  const normalizedName = academyNameNormalizationMap.get(academy.id)?.normalizedName?.trim();
+  if (normalizedName) return normalizedName;
+
   const districtName = normalizePlaceName(academy.district);
   const regionName = normalizePlaceName(academy.region);
 
@@ -48,10 +54,31 @@ export function getAcademyDisplayName(academy: Academy) {
 }
 
 export function getAcademyDisplayLocation(academy: Academy) {
+  const normalizedLocation = academyNameNormalizationMap.get(academy.id)?.displayLocation?.trim();
+  if (normalizedLocation) return normalizedLocation;
+
   const location = compactLocation(academy.location);
   if (location) return location;
 
   return [academy.region, academy.district].filter(Boolean).join(" ");
+}
+
+export function getAcademyDisplayAliases(academy: Academy) {
+  const normalization = academyNameNormalizationMap.get(academy.id);
+  if (!normalization) return [];
+
+  return Array.from(new Set([
+    normalization.originalName,
+    normalization.normalizedName,
+    normalization.baseName,
+    normalization.branchName,
+    normalization.canonicalBrand,
+    ...normalization.aliases,
+  ].filter(Boolean)));
+}
+
+export function getAcademyNameNormalization(academyId: string) {
+  return academyNameNormalizationMap.get(academyId);
 }
 
 function compactLocation(value: string) {

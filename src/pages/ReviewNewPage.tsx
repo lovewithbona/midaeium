@@ -4,7 +4,7 @@ import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
 import type { Review } from "../data/academies";
 import { findUniversityByName, searchUniversities } from "../data/universities";
-import { getAcademyDisplayLocation, getAcademyDisplayName } from "../utils/academyDisplay";
+import { getAcademyDisplayAliases, getAcademyDisplayLocation, getAcademyDisplayName } from "../utils/academyDisplay";
 import { saveStoredReview } from "../utils/storage";
 
 const moods = ["매우 진지해요", "진지한 편이에요", "보통이에요", "자유로운 편이에요", "매우 자유로워요"];
@@ -72,7 +72,7 @@ export default function ReviewNewPage() {
   const filteredAcademies = useMemo(() => {
     const trimmed = keyword.trim();
     if (!trimmed) return [];
-    return academies.filter((academy) => [academy.name, getAcademyDisplayName(academy), academy.location, academy.address].some((text) => text.includes(trimmed))).slice(0, 8);
+    return academies.filter((academy) => [academy.name, getAcademyDisplayName(academy), ...getAcademyDisplayAliases(academy), academy.location, academy.address].some((text) => text.includes(trimmed))).slice(0, 8);
   }, [keyword]);
 
   function updateField(name: string, value: string) {
