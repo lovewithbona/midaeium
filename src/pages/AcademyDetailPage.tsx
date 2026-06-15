@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import AcademyMapSection from "../components/AcademyMapSection";
 import PageLayout from "../components/PageLayout";
 import ReviewCard from "../components/ReviewCard";
-import { academies, getAcademyMapUrl } from "../data/academies";
+import { academies } from "../data/academies";
 import type { Review } from "../data/academies";
 import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getRepresentativeReview } from "../utils/reviewStats";
@@ -149,11 +150,7 @@ export default function AcademyDetailPage() {
               )}
             </dl>
           )}
-          <div className="map-link-card">
-            <span>{academy.region} {academy.district}</span>
-            <strong>{academy.address}</strong>
-            <a href={getAcademyMapUrl(academy)} target="_blank" rel="noreferrer">네이버 지도 바로보기</a>
-          </div>
+          <AcademyMapSection academy={academy} />
           <div className="report-link-box">
             <p>정보가 다르다면 제보해 주세요.</p>
             <Link className="secondary-button" to={`/report-info?academyId=${academy.id}`}>정보 수정 제보</Link>

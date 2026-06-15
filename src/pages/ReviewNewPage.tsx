@@ -61,7 +61,7 @@ export default function ReviewNewPage() {
   const filteredAcademies = useMemo(() => {
     const trimmed = keyword.trim();
     if (!trimmed) return [];
-    return academies.filter((academy) => [academy.name, academy.location, academy.address].some((text) => text.includes(trimmed))).slice(0, 8);
+    return academies.filter((academy) => [academy.name, getAcademyDisplayName(academy), academy.location, academy.address].some((text) => text.includes(trimmed))).slice(0, 8);
   }, [keyword]);
 
   function updateField(name: string, value: string) {
@@ -105,7 +105,7 @@ export default function ReviewNewPage() {
     event.preventDefault();
     setFormError(null);
     const selectedAcademy = academies.find((academy) => academy.id === academyId);
-    const academyName = isNewAcademy ? form.newName.trim() : selectedAcademy?.name || "";
+    const academyName = isNewAcademy ? form.newName.trim() : selectedAcademy ? getAcademyDisplayName(selectedAcademy) : "";
     const targetAcademyId = isNewAcademy ? `new-${Date.now()}` : academyId;
 
     if (isNewAcademy && (!form.newName.trim() || !form.newAddress.trim())) {

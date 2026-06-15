@@ -4,6 +4,7 @@ import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/
 import { importedGoogleFormReviews20260614, type ImportedGoogleFormReview } from "../data/importedReviews20260614";
 import { surveyRawAcademyMatchMap20260614 } from "../data/surveyAcademyMatchPlan";
 import { normalizeUniversityName } from "../data/universities";
+import { getAcademyDisplayName } from "./academyDisplay";
 import { getAdminAcademyDrafts, getModerationStatusOverride, getReviewAcademyMatchOverride, getReviewDetailPublicOverride, getReviewSchoolTagsOverride } from "./storage";
 
 type MatchResult = {
@@ -55,7 +56,7 @@ function convertImportedReview(review: ImportedFormReview): Review {
     ...reviewedImportedReview,
     id: review.id,
     academyId,
-    academyName: reviewedOverride?.academyName || matchedAcademy?.name || reviewedImportedReview?.academyName || review.academyName,
+    academyName: reviewedOverride?.academyName || (matchedAcademy ? getAcademyDisplayName(matchedAcademy) : "") || reviewedImportedReview?.academyName || review.academyName,
     academyNameRaw: review.academyNameRaw,
     writerStatus: review.writerStatus,
     attendedYear: review.attendedYear,

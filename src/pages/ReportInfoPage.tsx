@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies } from "../data/academies";
+import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { saveInfoReport } from "../utils/storage";
 
 const reportTypes = [
@@ -22,7 +23,7 @@ export default function ReportInfoPage() {
   const [done, setDone] = useState(false);
   const [form, setForm] = useState({
     type: reportTypes[0],
-    academyKeyword: academy?.name || "",
+    academyKeyword: academy ? getAcademyDisplayName(academy) : "",
     problematicInfo: "",
     requestedChange: "",
     referenceUrl: "",
@@ -31,7 +32,7 @@ export default function ReportInfoPage() {
   const academySuggestions = useMemo(() => {
     const keyword = form.academyKeyword.trim();
     if (!keyword) return [];
-    return academies.filter((item) => [item.name, item.address, item.location].some((text) => text.includes(keyword))).slice(0, 5);
+    return academies.filter((item) => [item.name, getAcademyDisplayName(item), item.address, item.location].some((text) => text.includes(keyword))).slice(0, 5);
   }, [form.academyKeyword]);
 
   function updateField(name: keyof typeof form, value: string) {
@@ -68,7 +69,7 @@ export default function ReportInfoPage() {
           <label>대상 학원 검색<input value={form.academyKeyword} onChange={(event) => updateField("academyKeyword", event.target.value)} placeholder="학원명을 입력해 주세요" /></label>
           {academySuggestions.length > 0 && (
             <div className="wide inline-suggestion-list">
-              {academySuggestions.map((item) => <button type="button" key={item.id} onClick={() => updateField("academyKeyword", item.name)}>{item.name} · {item.region} {item.district}</button>)}
+              {academySuggestions.map((item) => <button type="button" key={item.id} onClick={() => updateField("academyKeyword", getAcademyDisplayName(item))}>{getAcademyDisplayName(item)} · {item.region} {item.district}</button>)}
             </div>
           )}
           <label className="wide">문제가 있는 정보<textarea value={form.problematicInfo} onChange={(event) => updateField("problematicInfo", event.target.value)} /></label>

@@ -5,6 +5,7 @@ import FilterChips from "../components/FilterChips";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
 import { findUniversityByName, getFeaturedUniversities, searchUniversities, universitySeeds } from "../data/universities";
+import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { getAcademyAggregatedInsights, getAcademyReviewStats } from "../utils/reviewStats";
 
 const primaryRegions = ["전체", "서울", "경기", "부산", "울산", "대구", "광주"];
@@ -42,7 +43,8 @@ export default function AcademiesPage() {
     const filtered = withIndex.filter(({ academy, insights }) => {
       const regionMatch = region === "전체" || academy.region === region;
       const districtMatch = district === "전체" || academy.district === district;
-      const keywordMatch = !keyword || [academy.name, academy.location, academy.address, academy.region, academy.district].some((text) => text.includes(keyword));
+      const displayName = getAcademyDisplayName(academy);
+      const keywordMatch = !keyword || [academy.name, displayName, academy.location, academy.address, academy.region, academy.district].some((text) => text.includes(keyword));
       const typeLabels = [...insights.preparedTypeCounts, ...insights.strongTypeCounts].map((item) => item.label);
       const typeFallback = [...academy.entranceTypes, ...academy.strongTypes];
       const typeMatch = type === "전체" || [...typeLabels, ...typeFallback].some((academyType) => academyType === type);
@@ -53,7 +55,7 @@ export default function AcademiesPage() {
     });
 
     return [...filtered].sort((a, b) => {
-      if (sort === "name") return a.academy.name.localeCompare(b.academy.name, "ko");
+      if (sort === "name") return getAcademyDisplayName(a.academy).localeCompare(getAcademyDisplayName(b.academy), "ko");
       if (sort === "reviewCount") return b.stats.reviewCount - a.stats.reviewCount || a.index - b.index;
       if (sort === "ratingHigh" || sort === "ratingLow") {
         const aHasReviews = a.stats.reviewCount > 0;

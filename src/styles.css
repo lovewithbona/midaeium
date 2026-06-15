@@ -1283,13 +1283,29 @@ label input::placeholder {
 }
 
 .map-link-card a {
+  display: inline-flex;
   width: fit-content;
   max-width: 100%;
-  padding-bottom: 3px;
-  border-bottom: 1px solid var(--text);
+  min-height: 40px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: #fff;
   color: var(--text);
   font-weight: 620;
   overflow-wrap: anywhere;
+}
+
+.map-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.map-link-note {
+  max-width: 720px;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .report-link-box {

@@ -5,6 +5,7 @@ import { academies, regions, type Academy, type Review, type ReviewStatus } from
 import { getSchoolTagResearchByAcademyId } from "../data/academySchoolTagsInitial152";
 import { surveyUnresolvedAcademyNames20260614 } from "../data/surveyAcademyMatchPlan";
 import { findUniversityByName, searchUniversities, suggestUniversitiesFromRawText } from "../data/universities";
+import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { downloadAdminReviewExport } from "../utils/adminExport";
 import { getAllReviews, getReviewDisplayDetail } from "../utils/reviewStats";
 import {
@@ -95,7 +96,7 @@ export default function MyPage() {
     const keyword = academyKeyword.trim();
     if (!keyword) return [];
     return allAcademies
-      .filter((academy) => [academy.name, academy.location, academy.address, academy.region, academy.district].some((text) => text.includes(keyword)))
+      .filter((academy) => [academy.name, getAcademyDisplayName(academy), academy.location, academy.address, academy.region, academy.district].some((text) => text.includes(keyword)))
       .slice(0, 8);
   }, [academyKeyword, allAcademies]);
 
@@ -326,13 +327,13 @@ export default function MyPage() {
               <section className="admin-editor-section">
                 <h3>매칭 학원</h3>
                 <p className="admin-raw-line">원문 학원명: <b>{selectedReview.academyNameRaw || selectedReview.academyName || "없음"}</b></p>
-                <p className="admin-raw-line">현재 매칭: <b>{selectedAcademy?.name || "확인 필요"}</b></p>
+                <p className="admin-raw-line">현재 매칭: <b>{selectedAcademy ? getAcademyDisplayName(selectedAcademy) : "확인 필요"}</b></p>
                 <input value={academyKeyword} onChange={(event) => setAcademyKeyword(event.target.value)} placeholder="학원명을 검색해 매칭하세요." />
                 {academyResults.length > 0 && (
                   <div className="admin-search-results">
                     {academyResults.map((academy) => (
                       <button type="button" key={academy.id} onClick={() => updateReviewAcademyMatch(selectedReview.id, academy.id)}>
-                        <strong>{academy.name}</strong>
+                        <strong>{getAcademyDisplayName(academy)}</strong>
                         <span>{academy.region} {academy.district} · {academy.address}</span>
                       </button>
                     ))}

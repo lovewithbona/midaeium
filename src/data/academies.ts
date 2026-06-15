@@ -55,6 +55,8 @@ export type AcademySeedWithTypes = {
   typeConfidence: TypeConfidence;
   typeMemo: string;
   createdAt?: string;
+  latitude?: number;
+  longitude?: number;
   schoolTags?: SchoolTag[];
   schoolTagResearchStatus?: "근거 확인" | "근거 부족";
   schoolTagResearchMemo?: string;
