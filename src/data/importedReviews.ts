@@ -39,6 +39,7 @@ export type ImportedFormReview = {
   createdAt: string;
   status: "pending" | "public" | "held" | "rejected" | "hidden";
   source: "google-form";
+  sourceBatch?: string;
   consent: { publish: boolean; moderation: boolean };
   moderationFlags: string[];
 };

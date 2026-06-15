@@ -300,6 +300,7 @@ export default function MyPage() {
               >
                 <strong>{review.academyNameRaw || review.academyName || "학원명 없음"}</strong>
                 <span>{review.writerStatus || "작성자 정보 없음"} · {review.rating || 0}/5</span>
+                <small>{getReviewSourceLabel(review)}</small>
                 <small>{getStatusLabel(review.status)}{review.needsAcademyMatch ? " · 매칭 필요" : ""}</small>
               </button>
             )) : (
@@ -315,7 +316,7 @@ export default function MyPage() {
                 <div>
                   <span className={`status-badge status-${selectedReview.status}`}>{getStatusLabel(selectedReview.status)}</span>
                   <h2>{selectedReview.academyNameRaw || selectedReview.academyName || "학원명 없음"}</h2>
-                  <p>{selectedReview.source === "google-form" ? `구글폼 ${selectedReview.sourceRow}행` : "사이트 등록 리뷰"}</p>
+                  <p>{getReviewSourceLabel(selectedReview)}</p>
                 </div>
                 {selectedReview.moderationFlags && selectedReview.moderationFlags.length > 0 && (
                   <div className="moderation-flags">
@@ -634,6 +635,14 @@ function getStatusLabel(status: ReviewStatus) {
   if (status === "held") return "보류";
   if (status === "hidden" || status === "rejected") return "제외";
   return "검수 대기";
+}
+
+function getReviewSourceLabel(review: Review) {
+  if (review.source === "google-form") {
+    return `${review.sourceBatch || "Google Form"} · row ${review.sourceRow || "-"}`;
+  }
+
+  return "사이트 등록 리뷰";
 }
 
 function getAllReviewTags(review: Review) {

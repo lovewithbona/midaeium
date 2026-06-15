@@ -7,6 +7,7 @@ import { academyChannelOverrides, type AcademyChannelConfidence } from "./academ
 import { reviewedAcademyDrafts } from "./adminReviewedData";
 import { additionalAcademySeeds100 } from "./additionalAcademies100";
 import { applyAcademySchoolTagResearch, type AcademySchoolTagSource } from "./academySchoolTagsInitial152";
+import { surveyAdditionalAcademies20260615New } from "./googleFormAcademyMatches20260615New";
 import { surveyAdditionalAcademies20260614 } from "./surveyAcademyMatchPlan";
 
 export type EntranceType =
@@ -2767,6 +2768,7 @@ export type Review = {
   helpful?: number;
   downvote?: number;
   source?: "manual" | "demo" | "google-form";
+  sourceBatch?: string;
   sourceRow?: number;
   academyNameRaw?: string;
   schoolTextRaw?: string;
@@ -2808,8 +2810,24 @@ function normalizeReviewedAcademyDrafts(): Academy[] {
   }));
 }
 
-function normalizeSurveyAdditionalAcademies(): Academy[] {
-  return surveyAdditionalAcademies20260614.map((academy) => ({
+type SurveyAdditionalAcademyLike = {
+  id: string;
+  name: string;
+  region: string;
+  district: string;
+  location: string;
+  address: string;
+  homepageUrl: string | null;
+  instagramUrl: string | null;
+  naverBlogUrl: string | null;
+  mapSearchQuery: string;
+  sourceUrl: string | null;
+  verifiedStatus: "확인 필요" | "확인 완료";
+  note?: string;
+};
+
+function normalizeSurveyAdditionalAcademies(academyCandidates: SurveyAdditionalAcademyLike[], createdAt: string): Academy[] {
+  return academyCandidates.map((academy) => ({
     id: academy.id,
     name: academy.name,
     region: academy.region,
@@ -2826,7 +2844,7 @@ function normalizeSurveyAdditionalAcademies(): Academy[] {
     typeSourceUrl: null,
     typeConfidence: "확인 필요",
     typeMemo: "구글폼 최신 응답에서 확인된 신규 학원 후보입니다. 운영자 검수가 필요합니다.",
-    createdAt: "2026-06-14T00:00:00+09:00",
+    createdAt,
     schoolTags: [],
     officialWebsiteUrl: academy.homepageUrl,
     instagramUrl: academy.instagramUrl,
@@ -2882,7 +2900,20 @@ function mergeAcademySeeds(baseAcademies: AcademySeedWithTypes[], extraAcademies
 
 function mergeAcademies(baseAcademies: Academy[], extraAcademies: Academy[]) {
   const academyMap = new Map<string, Academy>();
-  [...baseAcademies, ...extraAcademies].forEach((academy) => academyMap.set(academy.id, academy));
+  [...baseAcademies, ...extraAcademies].forEach((academy) => {
+    const nameAddressKey = `${normalizeAcademyDuplicateText(academy.name)}::${normalizeAcademyDuplicateText(academy.address)}`;
+    const duplicate = [...academyMap.values()].find((item) => (
+      item.id === academy.id
+      || `${normalizeAcademyDuplicateText(item.name)}::${normalizeAcademyDuplicateText(item.address)}` === nameAddressKey
+    ));
+
+    if (duplicate) {
+      console.warn("[midaeium] duplicate academy candidate skipped", { existing: duplicate.id, skipped: academy.id });
+      return;
+    }
+
+    academyMap.set(academy.id, academy);
+  });
   return [...academyMap.values()];
 }
 
@@ -2895,7 +2926,8 @@ const academySeedsWithChannels = applyAcademyChannelOverrides(baseAcademySeeds);
 const academySeedsWithSchoolTagResearch = applyAcademySchoolTagResearch(academySeedsWithChannels);
 
 export const academies: Academy[] = mergeAcademies(academySeedsWithSchoolTagResearch, [
-  ...normalizeSurveyAdditionalAcademies(),
+  ...normalizeSurveyAdditionalAcademies(surveyAdditionalAcademies20260614, "2026-06-14T00:00:00+09:00"),
+  ...normalizeSurveyAdditionalAcademies(surveyAdditionalAcademies20260615New, "2026-06-15T00:00:00+09:00"),
   ...normalizeReviewedAcademyDrafts(),
 ]);
 

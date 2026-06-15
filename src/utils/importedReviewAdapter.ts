@@ -1,5 +1,7 @@
 import { academies, type Academy, type Review, type ReviewStatus } from "../data/academies";
 import { reviewedImportedReviews, reviewedReviewOverrides } from "../data/adminReviewedData";
+import { importedGoogleFormReviews20260615New, type ImportedGoogleFormReviewNew } from "../data/googleFormReviews20260615New";
+import { reviewAcademyAliases20260615New } from "../data/googleFormAcademyMatches20260615New";
 import { importedReviewsFromGoogleForm, type ImportedFormReview } from "../data/importedReviews";
 import { importedGoogleFormReviews20260614, type ImportedGoogleFormReview } from "../data/importedReviews20260614";
 import { surveyRawAcademyMatchMap20260614 } from "../data/surveyAcademyMatchPlan";
@@ -31,6 +33,7 @@ const academyAliases: Record<string, string> = {
   대구아트포엠: "seolleung-gangnam-artpoem",
   대구수성클라우드학원: "daegu-suseong-cloud",
   대구창조의아침: "daegu-suseong-changa",
+  ...Object.fromEntries(Object.entries(reviewAcademyAliases20260615New).map(([name, academyId]) => [normalizeName(name), academyId])),
 };
 
 export function getImportedReviewsAsReviews(): Review[] {
@@ -89,6 +92,7 @@ function convertImportedReview(review: ImportedFormReview): Review {
     createdAt: review.createdAt,
     status: (localStatus || reviewedOverride?.status || reviewedImportedReview?.status || review.status) as ReviewStatus,
     source: review.source,
+    sourceBatch: review.sourceBatch,
     sourceRow: review.sourceRow,
     moderationFlags: review.moderationFlags,
     consent: review.consent,
@@ -134,10 +138,11 @@ function matchAcademy(review: ImportedFormReview): MatchResult {
 
 function getMergedImportedReviews(): ImportedFormReview[] {
   const latestReviews = importedGoogleFormReviews20260614.map(convertGoogleFormReview20260614);
-  const latestSourceRows = new Set(latestReviews.map((review) => review.sourceRow));
+  const newReviews = importedGoogleFormReviews20260615New.map(convertGoogleFormReview20260615New);
+  const latestSourceRows = new Set([...latestReviews, ...newReviews].map((review) => review.sourceRow));
   const legacyReviews = importedReviewsFromGoogleForm.filter((review) => !latestSourceRows.has(review.sourceRow));
 
-  return [...latestReviews, ...legacyReviews];
+  return [...latestReviews, ...newReviews, ...legacyReviews];
 }
 
 function convertGoogleFormReview20260614(review: ImportedGoogleFormReview): ImportedFormReview {
@@ -174,6 +179,50 @@ function convertGoogleFormReview20260614(review: ImportedGoogleFormReview): Impo
     createdAt: normalizeGoogleFormTimestamp(review.timestamp),
     status: review.status,
     source: "google-form",
+    sourceBatch: "Google Form 2026-06-14",
+    consent: {
+      publish: review.consentPublish === "예",
+      moderation: review.consentModeration === "예",
+    },
+    moderationFlags: review.moderationFlags,
+  };
+}
+
+function convertGoogleFormReview20260615New(review: ImportedGoogleFormReviewNew): ImportedFormReview {
+  return {
+    id: review.id,
+    sourceRow: review.sourceRow,
+    academyId: review.academyId,
+    academyNameRaw: review.academyNameRaw,
+    academyName: review.academyName,
+    writerStatus: review.writerStatus,
+    attendedYear: review.attendedYear,
+    attendedPeriod: review.attendedPeriod,
+    admissionResult: review.admissionResult,
+    preparedTypes: [],
+    strongTypes: [],
+    reviewSchoolTags: review.reviewSchoolTags,
+    schoolTextRaw: review.schoolTextRaw,
+    rating: review.rating,
+    atmosphere: review.atmosphere,
+    atmosphereScore: Number(review.atmosphere) || 0,
+    assignmentAmount: review.assignmentAmount,
+    assignmentAmountScore: Number(review.assignmentAmount) || 0,
+    difficulty: review.difficulty,
+    feedbackTags: review.feedbackTags,
+    goodTags: review.goodTags,
+    concernTags: review.concernTags,
+    cautionTags: review.cautionTags,
+    teachingStyleTags: review.teachingStyleTags,
+    summary: "",
+    detailOriginal: review.detailOriginal,
+    detail: review.detail,
+    detailPublic: review.detailPublic || undefined,
+    likes: review.likes,
+    createdAt: normalizeGoogleFormTimestamp(review.timestamp),
+    status: review.status,
+    source: "google-form",
+    sourceBatch: "Google Form 2026-06-15",
     consent: {
       publish: review.consentPublish === "예",
       moderation: review.consentModeration === "예",
