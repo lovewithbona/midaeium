@@ -4,13 +4,13 @@ import AcademyCard from "../components/AcademyCard";
 import FilterChips from "../components/FilterChips";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
-import { findUniversityByName, getFeaturedUniversities, searchUniversities, universitySeeds } from "../data/universities";
+import { findUniversityByName, getFeaturedUniversities, searchUniversities } from "../data/universities";
 import { getAcademyDisplayName } from "../utils/academyDisplay";
 import { getAcademyAggregatedInsights, getAcademyReviewStats } from "../utils/reviewStats";
 
 const primaryRegions = ["전체", "서울", "경기", "부산", "울산", "대구", "광주"];
 const primaryTypes = ["기초디자인", "기초소양", "발상과 표현", "회화", "조소", "만화·애니"];
-const featuredSchoolOptions = getFeaturedUniversities().map((university) => university.name);
+const featuredSchoolOptions = getFeaturedUniversities().slice(0, 8).map((university) => university.name);
 const PAGE_SIZE = 20;
 
 export default function AcademiesPage() {
@@ -19,7 +19,6 @@ export default function AcademiesPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showAllRegions, setShowAllRegions] = useState(false);
   const [showAllTypes, setShowAllTypes] = useState(false);
-  const [showAllSchools, setShowAllSchools] = useState(false);
   const [schoolKeyword, setSchoolKeyword] = useState("");
   const region = params.get("region") || "전체";
   const type = params.get("type") || "전체";
@@ -130,7 +129,7 @@ export default function AcademiesPage() {
 
   const visibleRegions = showAllRegions ? regions : primaryRegions;
   const visibleTypes = showAllTypes ? types : primaryTypes;
-  const visibleSchools = showAllSchools ? ["기타", ...featuredSchoolOptions, ...universitySeeds.map((university) => university.name)] : featuredSchoolOptions;
+  const visibleSchools = ["기타", ...featuredSchoolOptions];
   const uniqueVisibleSchools = Array.from(new Set(visibleSchools));
   const searchedSchools = schoolKeyword.trim() ? searchUniversities(schoolKeyword, 8) : [];
 
@@ -157,22 +156,29 @@ export default function AcademiesPage() {
       <section className="section">
         {isFilterOpen && (
           <div className="filter-panel">
-            <FilterChips label="지역" items={visibleRegions} value={region} onChange={(value) => updateParam("region", value)} tone="region" />
-            {!showAllRegions && <div className="filter-more-row"><span aria-hidden="true" /><button type="button" className="text-button filter-more-button" onClick={() => setShowAllRegions(true)}>지역 더보기</button></div>}
-            {region !== "전체" && districtOptions.length > 1 && (
-              <FilterChips label="세부 지역" items={districtOptions} value={district} onChange={(value) => updateParam("district", value)} tone="region" />
-            )}
-            <FilterChips label="전형" items={["전체", ...visibleTypes]} value={type} onChange={(value) => updateParam("type", value)} tone="type" />
-            {!showAllTypes && <div className="filter-more-row"><span aria-hidden="true" /><button type="button" className="text-button filter-more-button" onClick={() => setShowAllTypes(true)}>전형 더보기</button></div>}
-            <FilterChips label="주요 대비 대학" items={uniqueVisibleSchools} value={school} onChange={updateSchool} tone="type" />
-            <div className="filter-more-row">
-              <span aria-hidden="true" />
-              <div className="filter-search-column">
-                {!showAllSchools && <button type="button" className="text-button filter-more-button" onClick={() => setShowAllSchools(true)}>대학 더보기</button>}
+            <details className="filter-accordion" open>
+              <summary>지역</summary>
+              <FilterChips label="지역" items={visibleRegions} value={region} onChange={(value) => updateParam("region", value)} tone="region" />
+              {!showAllRegions && <div className="filter-more-row"><span aria-hidden="true" /><button type="button" className="text-button filter-more-button" onClick={() => setShowAllRegions(true)}>지역 더보기</button></div>}
+              {region !== "전체" && districtOptions.length > 1 && (
+                <FilterChips label="세부 지역" items={districtOptions} value={district} onChange={(value) => updateParam("district", value)} tone="region" />
+              )}
+            </details>
+            <details className="filter-accordion">
+              <summary>전형</summary>
+              <FilterChips label="전형" items={["전체", ...visibleTypes]} value={type} onChange={(value) => updateParam("type", value)} tone="type" />
+              {!showAllTypes && <div className="filter-more-row"><span aria-hidden="true" /><button type="button" className="text-button filter-more-button" onClick={() => setShowAllTypes(true)}>전형 더보기</button></div>}
+            </details>
+            <details className="filter-accordion">
+              <summary>주요 대비 대학</summary>
+              <FilterChips label="추천 대학" items={uniqueVisibleSchools} value={school} onChange={updateSchool} tone="type" />
+              <div className="filter-more-row">
+                <span aria-hidden="true" />
+                <div className="filter-search-column">
                 <input
                   value={schoolKeyword}
                   onChange={(event) => setSchoolKeyword(event.target.value)}
-                  placeholder="대학명 검색"
+                  placeholder="더 많은 대학 검색"
                   aria-label="주요 대비 대학 검색"
                 />
                 {searchedSchools.length > 0 && (
@@ -188,8 +194,9 @@ export default function AcademiesPage() {
                     ))}
                   </div>
                 )}
+                </div>
               </div>
-            </div>
+            </details>
           </div>
         )}
         <div className="list-tools">

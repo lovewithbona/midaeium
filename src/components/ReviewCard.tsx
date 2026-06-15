@@ -17,7 +17,8 @@ const reportReasons = [
 export default function ReviewCard({ review, onLike }: { review: Review; onLike?: () => void }) {
   const preview = getReviewPreview(review, 90);
   const displayDetail = getReviewDisplayDetail(review);
-  const hashtags = getReviewTagItems(review).slice(0, 10);
+  const tagGroups = getReviewTagGroups(review);
+  const metaText = getReviewMetaText(review);
   const [reactionState, setReactionState] = useState(() => ({
     empathy: {
       active: hasReactedToReview(review.id, "empathy"),
@@ -56,14 +57,14 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   return (
     <article className="review-card">
       <div className="review-head">
-        <strong>{getReviewMetaText(review)}</strong>
+        {metaText && <strong>{metaText}</strong>}
         {review.status === "pending" && <span className="status-pill">검토 대기</span>}
         {review.status === "held" && <span className="status-pill muted-pill">보류</span>}
         {(review.status === "rejected" || review.status === "hidden") && <span className="status-pill muted-pill">제외됨</span>}
       </div>
       <div className="heart-readout" aria-label={`만족도 ${review.rating || 0}점`}>
         {Array.from({ length: 5 }).map((_, index) => (
-          <span key={index} className={index < (review.rating || 0) ? "filled" : ""}>♥</span>
+          <span key={index} className={index < (review.rating || 0) ? "filled" : ""} aria-hidden="true">♥</span>
         ))}
       </div>
       <div className="review-metrics">
@@ -73,20 +74,25 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       </div>
       {preview && <p className="review-summary">“{preview}”</p>}
       <div className="review-body">
-        {hashtags.length > 0 && (
-          <div className="review-tags review-tags-inline">
-            {hashtags.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${tag.tone}-${tag.label}`}>{tag.label}</span>)}
+        {tagGroups.map((group) => (
+          <div className="review-tag-question" key={group.title}>
+            <span>{group.title}</span>
+            <div className="review-tags review-tags-inline">
+              {group.items.map((tag) => <span className={`review-tag ${tag.tone}`} key={`${group.title}-${tag.label}`}>{tag.label}</span>)}
+            </div>
           </div>
-        )}
+        ))}
         {displayDetail && (
           <div className="review-detail-preview">
-            <b>자세한 후기</b>
-            <p className={isExpanded ? "" : "clamped"}>{displayDetail}</p>
-            {displayDetail.length > 90 && (
-              <button type="button" className="text-button" onClick={() => setIsExpanded((value) => !value)}>
-                {isExpanded ? "접기" : "자세히 보기"}
-              </button>
+            {isExpanded && (
+              <>
+                <b>자세한 후기</b>
+                <p>{displayDetail}</p>
+              </>
             )}
+            <button type="button" className="text-button" onClick={() => setIsExpanded((value) => !value)}>
+              {isExpanded ? "접기" : "자세히 보기"}
+            </button>
             {review.admissionResult && <small className="review-meta-note">합격 여부: {review.admissionResult}</small>}
           </div>
         )}
@@ -97,6 +103,7 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
           type="button"
           onClick={() => handleReaction("empathy")}
           disabled={reactionState.empathy.active}
+          aria-pressed={reactionState.empathy.active}
         >
           공감해요 {reactionState.empathy.count}
         </button>
@@ -105,6 +112,7 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
           type="button"
           onClick={() => handleReaction("helpful")}
           disabled={reactionState.helpful.active}
+          aria-pressed={reactionState.helpful.active}
         >
           도움돼요 {reactionState.helpful.count}
         </button>
@@ -139,23 +147,21 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
 
 function getReviewMetaText(review: Review) {
   return [
-    "익명",
     review.writerStatus,
     review.attendedYear ? `${review.attendedYear} 수강` : "",
     review.attendedPeriod,
   ].filter(Boolean).join(" · ");
 }
 
-function getReviewTagItems(review: Review) {
+function getReviewTagGroups(review: Review) {
   return [
-    ...uniqueTags(review.feedbackTags || [], "feedback"),
-    ...uniqueTags(review.goodTags || [], "positive"),
-    ...uniqueTags(review.concernTags || [], "negative"),
-    ...uniqueTags(review.cautionTags || [], "caution"),
-  ];
+    { title: "좋았던 점", items: uniqueTags(review.goodTags || [], "positive") },
+    { title: "확인할 점", items: uniqueTags([...(review.concernTags || []), ...(review.cautionTags || [])], "negative") },
+    { title: "기타", items: uniqueTags(review.feedbackTags || [], "neutral") },
+  ].filter((group) => group.items.length > 0);
 }
 
-function uniqueTags(labels: string[], tone: KeywordTone | "feedback" | "caution") {
+function uniqueTags(labels: string[], tone: KeywordTone) {
   const items = labels.map((label) => ({ label: createHashtag(label), tone })).filter((item) => item.label);
   return Array.from(new Map(items.map((item) => [item.label, item])).values());
 }

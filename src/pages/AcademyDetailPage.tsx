@@ -41,7 +41,6 @@ export default function AcademyDetailPage() {
   const schoolInfoNote = getSchoolInfoNote(insights.schoolTagCounts.length > 0, academy.schoolTags.length > 0);
   const keywordGroups = getKeywordGroups(reviews);
   const sortedReviews = [...reviews].sort((a, b) => {
-    if (reviewSort === "empathy") return getReviewReactionCount(b, "empathy") - getReviewReactionCount(a, "empathy") || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     if (reviewSort === "helpful") return getReviewReactionCount(b, "helpful") - getReviewReactionCount(a, "helpful") || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     if (reviewSort === "recent") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     if (reviewSort === "old") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -50,8 +49,6 @@ export default function AcademyDetailPage() {
   const homepageLabel = getHomepageLabel(academy.officialWebsiteUrl);
   const instagramLabel = getInstagramLabel(academy.instagramUrl);
   const hasChannel = Boolean(academy.officialWebsiteUrl || academy.instagramUrl || academy.naverBlogUrl);
-  const infoStatus = getInfoStatus(hasReviews, academy.verifiedStatus);
-  const lastCheckedAt = academy.createdAt ? academy.createdAt.slice(0, 10) : "2026-06-14";
 
   return (
     <PageLayout>
@@ -108,12 +105,12 @@ export default function AcademyDetailPage() {
               <strong>{academy.region} {academy.district} · {academy.address}</strong>
             </div>
             <div>
-              <span><i className="info-icon type" aria-hidden="true" />준비 가능 전형</span>
-              <strong>{preparedLabels.length > 0 ? preparedLabels.slice(0, 4).map((item) => item.label).join(", ") : "확인 중"}</strong>
+              <span><i className="info-icon check" aria-hidden="true" />준비 가능 전형</span>
+              <strong>{preparedLabels.length > 0 ? preparedLabels.slice(0, 4).map((item) => item.label).join(", ") : "기본 등록 정보 업데이트 예정"}</strong>
             </div>
             <div>
-              <span><i className="info-icon strength" aria-hidden="true" />강점 입시 유형</span>
-              <strong>{strongLabels.length > 0 ? strongLabels.slice(0, 4).map((item) => item.label).join(", ") : "확인 중"}</strong>
+              <span><i className="info-icon fire" aria-hidden="true" />강점 입시 유형</span>
+              <strong>{strongLabels.length > 0 ? strongLabels.slice(0, 4).map((item) => item.label).join(", ") : "기본 등록 정보 업데이트 예정"}</strong>
             </div>
             <div>
               <span><i className="info-icon school" aria-hidden="true" />주요 대비 대학</span>
@@ -122,12 +119,6 @@ export default function AcademyDetailPage() {
           </div>
           <p className="type-note">{schoolInfoNote}</p>
           <p className="type-note">주요 대비 대학은 공개 자료와 지금까지 등록된 리뷰를 바탕으로 정리한 참고 정보입니다. 학원의 공식 합격률이나 성과를 의미하지 않습니다.</p>
-          <dl className="detail-list compact">
-            <dt>정보 마지막 확인일</dt>
-            <dd>{lastCheckedAt}</dd>
-            <dt>정보 확인 상태</dt>
-            <dd>{infoStatus}</dd>
-          </dl>
           {hasChannel && (
             <dl className="detail-list compact">
               {academy.officialWebsiteUrl && (
@@ -185,8 +176,7 @@ export default function AcademyDetailPage() {
           <div className="review-sort-row">
             <label>리뷰 정렬
               <select value={reviewSort} onChange={(event) => setReviewSort(event.target.value)}>
-                <option value="helpful">도움되는순</option>
-                <option value="empathy">공감순</option>
+                <option value="helpful">도움순</option>
                 <option value="recent">최근순</option>
                 <option value="old">오래된순</option>
               </select>
@@ -227,12 +217,6 @@ function getSchoolInfoNote(hasReviewSchoolTags: boolean, hasInitialSchoolTags: b
   if (hasReviewSchoolTags) return "지금까지 등록된 리뷰를 바탕으로 정리한 정보입니다.";
   if (hasInitialSchoolTags) return "공개 자료를 바탕으로 정리한 1차 정보입니다. 리뷰가 쌓이면 자동으로 업데이트됩니다.";
   return "기본 등록 정보를 보여 주고 있습니다. 리뷰가 쌓이면 데이터가 업데이트됩니다.";
-}
-
-function getInfoStatus(hasReviews: boolean, verifiedStatus: string) {
-  if (hasReviews) return "리뷰 기반";
-  if (verifiedStatus === "확인 완료") return "공개 자료 확인";
-  return "운영자 검수 중";
 }
 
 function getKeywordGroups(reviews: Review[]) {

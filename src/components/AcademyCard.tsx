@@ -37,7 +37,7 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
         {reviewTags.map((tag) => (
           <span className="tag tag-review" key={tag}>{tag}</span>
         ))}
-        {typeTags.length === 0 && reviewTags.length === 0 && <span className="tag tag-type">#전형확인중</span>}
+        {typeTags.length === 0 && reviewTags.length === 0 && <span className="tag tag-type">#기본정보업데이트예정</span>}
       </div>
       <div className="academy-review-preview">
         <p>{previewReview ? getReviewPreview(previewReview, 80) : "아직 등록된 리뷰가 없습니다. 첫 리뷰를 남겨 주세요."}</p>
@@ -46,7 +46,6 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
         <p className="academy-school-line">주요 대비 대학: {schoolShortLabels.join(" · ")}</p>
       )}
       {academy.typeConfidence === "이름 기반 1차 분류" && <p className="type-note">1차 분류</p>}
-      {academy.typeConfidence === "확인 필요" && <p className="type-note">전형 확인 필요</p>}
       <div className="card-footer">
         <span>리뷰 {reviewCount}개</span>
         <span>{reviewCount > 0 ? `평균 ♥ ${averageRating.toFixed(1)}` : "아직 하트 평가가 없어요."}</span>

@@ -43,8 +43,12 @@ export default function AboutPage() {
         <p>학원 정보는 공개 자료와 사용자 제보를 바탕으로 정리되며, 실제 운영 정보와 다를 수 있습니다. 방문 전 학원 공식 채널을 통해 한 번 더 확인해 주세요.</p>
         <Link className="text-button" to="/data-policy">자세히 보기</Link>
       </section>
-      <section className="faq-section">
-        <h2>FAQ</h2>
+      <section className="guide-section">
+        <div className="guide-section-head">
+          <p>FAQ</p>
+          <h2>자주 묻는 질문</h2>
+        </div>
+        <div className="guide-faq-list">
         {[
           ["미대이음은 어떤 사이트인가요?", "미대 입시생이 학원 정보와 실제 리뷰를 비교할 수 있도록 돕는 정보 플랫폼입니다."],
           ["리뷰는 모두 익명인가요?", "네. 일반 사용자 화면에는 익명으로 공개됩니다."],
@@ -53,11 +57,12 @@ export default function AboutPage() {
           ["학원 관계자도 리뷰를 작성할 수 있나요?", "학원 관계자, 강사, 직원, 홍보 담당자의 리뷰 작성은 제한됩니다."],
           ["미대이음의 정보는 공식 입시 정보인가요?", "아니요. 공개 자료와 리뷰를 바탕으로 한 참고 정보이며, 대학 모집요강과 학원 공식 채널을 함께 확인해야 합니다."],
         ].map(([question, answer]) => (
-          <details key={question} className="faq-item">
+          <details key={question}>
             <summary>{question}</summary>
             <p>{answer}</p>
           </details>
         ))}
+        </div>
       </section>
       <section className="bottom-cta">
         <h2>당신의 경험이 누군가에게는 첫 번째 입시 정보가 될 수 있습니다.</h2>

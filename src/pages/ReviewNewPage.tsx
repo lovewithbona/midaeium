@@ -1,4 +1,4 @@
-import { Dispatch, FormEvent, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import { academies, regions, types } from "../data/academies";
@@ -54,9 +54,16 @@ export default function ReviewNewPage() {
     directExperience: false,
     falseReviewNotice: false,
   });
-  const [formError, setFormError] = useState<{ key: string; message: string } | null>(null);
+  const [formErrors, setFormErrors] = useState<{ key: string; message: string }[]>([]);
   const detailLength = form.detail.trim().length;
   const schoolSearchResults = useMemo(() => searchUniversities(schoolKeyword, 8), [schoolKeyword]);
+
+  useEffect(() => {
+    if (formErrors.length === 0) return;
+    const summary = document.querySelector<HTMLElement>(".form-error-summary");
+    if (!summary) return;
+    window.scrollTo({ top: Math.max(summary.offsetTop - 18, 0), behavior: "smooth" });
+  }, [formErrors]);
 
   const filteredAcademies = useMemo(() => {
     const trimmed = keyword.trim();
@@ -103,17 +110,17 @@ export default function ReviewNewPage() {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setFormError(null);
+    setFormErrors([]);
     const selectedAcademy = academies.find((academy) => academy.id === academyId);
     const academyName = isNewAcademy ? form.newName.trim() : selectedAcademy ? getAcademyDisplayName(selectedAcademy) : "";
     const targetAcademyId = isNewAcademy ? `new-${Date.now()}` : academyId;
 
     if (isNewAcademy && (!form.newName.trim() || !form.newAddress.trim())) {
-      showFormError(!form.newName.trim() ? "newName" : "newAddress", !form.newName.trim() ? "새 학원명 항목 입력이 안 됐어요." : "새 학원 주소 항목 입력이 안 됐어요.");
+      showFormErrors([{ key: !form.newName.trim() ? "newName" : "newAddress", message: !form.newName.trim() ? "새 학원명 항목 입력이 안 됐어요." : "새 학원 주소 항목 입력이 안 됐어요." }]);
       return;
     }
 
-    const missingMessage = getMissingRequiredMessage({
+    const missingMessages = getMissingRequiredMessages({
       academyName,
       preparedTypes,
       strongTypes,
@@ -128,13 +135,13 @@ export default function ReviewNewPage() {
       verificationChecks,
     });
 
-    if (missingMessage) {
-      showFormError(missingMessage.key, missingMessage.message);
+    if (missingMessages.length > 0) {
+      showFormErrors(missingMessages);
       return;
     }
 
     if (detailLength < MIN_DETAIL_LENGTH) {
-      showFormError("detail", `자세한 후기는 최소 ${MIN_DETAIL_LENGTH}자 이상 작성해 주세요.`);
+      showFormErrors([{ key: "detail", message: `자세한 후기는 최소 ${MIN_DETAIL_LENGTH}자 이상 작성해 주세요.` }]);
       return;
     }
 
@@ -175,11 +182,12 @@ export default function ReviewNewPage() {
     setDone(true);
   }
 
-  function showFormError(key: string, message: string) {
-    setFormError({ key, message });
-    window.setTimeout(() => {
-      document.querySelector(`[data-error-key="${key}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 0);
+  function showFormErrors(errors: { key: string; message: string }[]) {
+    setFormErrors(errors);
+  }
+
+  function scrollToField(key: string) {
+    document.querySelector(`[data-error-key="${key}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   if (done) {
@@ -213,13 +221,20 @@ export default function ReviewNewPage() {
         <Link className="secondary-button" to="/login">로그인하고 작성하기</Link>
       </div>
       <form className="review-form" onSubmit={handleSubmit}>
+        {formErrors.length > 0 && <ErrorSummary errors={formErrors} onSelect={scrollToField} />}
+        <ol className="review-stepper" aria-label="리뷰 등록 진행 상태">
+          <li><span>1</span>학원 선택</li>
+          <li><span>2</span>리뷰 작성</li>
+          <li><span>3</span>작성자 정보</li>
+        </ol>
         <section className="form-section">
+          <p className="step-kicker">1단계</p>
           <h2 data-error-key="academy">학원 선택 <RequiredMark /></h2>
-          <ErrorMessage formError={formError} targetKeys={["academy", "newName", "newAddress"]} />
+          <ErrorMessage formErrors={formErrors} targetKeys={["academy", "newName", "newAddress"]} />
           {!isNewAcademy ? (
             <div className="choice-toolbar">
               <label>
-                학원명 검색 <RequiredMark />
+                <LabelText required>학원명 검색</LabelText>
                 <input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="학원명, 위치, 주소를 입력해 주세요" />
               </label>
               <button type="button" className="secondary-button" onClick={() => setIsNewAcademy(true)}>
@@ -251,22 +266,23 @@ export default function ReviewNewPage() {
           )}
           {isNewAcademy && (
             <div className="form-grid">
-              <label data-error-key="newName">학원명 <RequiredMark /><input value={form.newName} onChange={(event) => updateField("newName", event.target.value)} /></label>
+              <label data-error-key="newName"><LabelText required>학원명</LabelText><input value={form.newName} onChange={(event) => updateField("newName", event.target.value)} /></label>
               <label>지역<select value={form.newRegion} onChange={(event) => updateField("newRegion", event.target.value)}>{regions.filter((region) => region !== "전체").map((region) => <option key={region}>{region}</option>)}</select></label>
-              <label className="wide" data-error-key="newAddress">주소 <RequiredMark /><input value={form.newAddress} onChange={(event) => updateField("newAddress", event.target.value)} /></label>
+              <label className="wide" data-error-key="newAddress"><LabelText required>주소</LabelText><input value={form.newAddress} onChange={(event) => updateField("newAddress", event.target.value)} /></label>
             </div>
           )}
         </section>
 
         <section className="form-section">
+          <p className="step-kicker">2단계</p>
           <h2>리뷰 작성</h2>
           <div className="review-step-grid">
             <div className="review-field-block rating-field">
               <span className="field-title" data-error-key="rating">만족도 <RequiredMark /></span>
-              <ErrorMessage formError={formError} targetKeys={["rating"]} />
+              <ErrorMessage formErrors={formErrors} targetKeys={["rating"]} />
               <div className="heart-rating" role="radiogroup" aria-label="만족도">
                 {[1, 2, 3, 4, 5].map((value) => (
-                  <button type="button" key={value} className={value <= rating ? "active" : ""} onClick={() => setRating(value)} aria-label={`${value}점`}>
+                  <button type="button" key={value} className={value <= rating ? "active" : ""} onClick={() => setRating(value)} aria-label={`${value}점`} aria-pressed={value <= rating}>
                     ♥
                   </button>
                 ))}
@@ -283,7 +299,7 @@ export default function ReviewNewPage() {
             <summary>전형 선택</summary>
             <div className="review-field-block">
               <span className="field-title" data-error-key="preparedTypes">준비 가능 전형 <RequiredMark /></span>
-              <ErrorMessage formError={formError} targetKeys={["preparedTypes"]} />
+              <ErrorMessage formErrors={formErrors} targetKeys={["preparedTypes"]} />
               <div className="chip-row no-label">
                 {types.map((type) => (
                   <button type="button" key={type} className={`chip ${preparedTypes.includes(type) ? "active" : ""}`} onClick={() => toggleType(type)}>{type}</button>
@@ -292,7 +308,7 @@ export default function ReviewNewPage() {
             </div>
             <div className="review-field-block">
               <span className="field-title" data-error-key="strongTypes">강점 전형 <RequiredMark /></span>
-              <ErrorMessage formError={formError} targetKeys={["strongTypes"]} />
+              <ErrorMessage formErrors={formErrors} targetKeys={["strongTypes"]} />
               <div className="chip-row no-label">
                 {types.map((type) => (
                   <button type="button" key={type} className={`chip ${strongTypes.includes(type) ? "active" : ""}`} onClick={() => toggleStrongType(type)}>{type}</button>
@@ -344,7 +360,7 @@ export default function ReviewNewPage() {
           </details>
           <div className="review-choice-card review-choice-feedback">
             <span className="field-title" data-error-key="feedbackTags">피드백 스타일 <RequiredMark /></span>
-            <ErrorMessage formError={formError} targetKeys={["feedbackTags"]} />
+            <ErrorMessage formErrors={formErrors} targetKeys={["feedbackTags"]} />
             <div className="chip-row no-label chip-row-feedback">
               {feedbackStyles.map((tag) => (
                 <button type="button" key={tag} className={`chip ${feedbackTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setFeedbackTags)}>{tag}</button>
@@ -353,7 +369,7 @@ export default function ReviewNewPage() {
           </div>
           <div className="review-choice-card review-choice-positive">
             <span className="field-title" data-error-key="goodTags">좋았던 점 <RequiredMark /></span>
-            <ErrorMessage formError={formError} targetKeys={["goodTags"]} />
+            <ErrorMessage formErrors={formErrors} targetKeys={["goodTags"]} />
             <div className="chip-row no-label chip-row-positive">
               {goodTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${goodTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setGoodTags)}>{tag}</button>
@@ -362,7 +378,7 @@ export default function ReviewNewPage() {
           </div>
           <div className="review-choice-card review-choice-concern">
             <span className="field-title" data-error-key="concernTags">아쉬웠던 점 <RequiredMark /></span>
-            <ErrorMessage formError={formError} targetKeys={["concernTags"]} />
+            <ErrorMessage formErrors={formErrors} targetKeys={["concernTags"]} />
             <div className="chip-row no-label chip-row-concern">
               {concernTagOptions.map((tag) => (
                 <button type="button" key={tag} className={`chip ${concernTags.includes(tag) ? "active" : ""}`} onClick={() => toggleListValue(tag, setConcernTags)}>{tag}</button>
@@ -378,20 +394,21 @@ export default function ReviewNewPage() {
             </div>
           </div>
           <div className="form-grid">
-            <label className="wide" data-error-key="summary">한 줄 후기 <RequiredMark /><input value={form.summary} onChange={(event) => updateField("summary", event.target.value)} placeholder="예: 피드백은 자세했지만 과제량이 많아서 시간 관리가 필요했어요." /><ErrorMessage formError={formError} targetKeys={["summary"]} /></label>
-            <label className="wide" data-error-key="detail">자세한 후기 <RequiredMark /><textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업 분위기, 좋았던 점, 아쉬웠던 점, 어떤 학생에게 추천하는지 적어 주세요." /><small className={`character-counter ${detailLength < MIN_DETAIL_LENGTH ? "muted" : ""}`}>현재 {detailLength}자 / 최소 {MIN_DETAIL_LENGTH}자</small><ErrorMessage formError={formError} targetKeys={["detail"]} /></label>
+            <label className="wide" data-error-key="summary"><LabelText required>한 줄 후기</LabelText><input value={form.summary} onChange={(event) => updateField("summary", event.target.value)} placeholder="예: 피드백은 자세했지만 과제량이 많아서 시간 관리가 필요했어요." /><ErrorMessage formErrors={formErrors} targetKeys={["summary"]} /></label>
+            <label className="wide" data-error-key="detail"><LabelText required>자세한 후기</LabelText><textarea value={form.detail} onChange={(event) => updateField("detail", event.target.value)} placeholder="수업 분위기, 좋았던 점, 아쉬웠던 점, 어떤 학생에게 추천하는지 적어 주세요." /><small className={`character-counter ${detailLength < MIN_DETAIL_LENGTH ? "muted" : ""}`}>현재 {detailLength}자 / 최소 {MIN_DETAIL_LENGTH}자</small><ErrorMessage formErrors={formErrors} targetKeys={["detail"]} /></label>
           </div>
         </section>
 
         <section className="form-section">
-          <h2>검수용 정보</h2>
+          <p className="step-kicker">3단계</p>
+          <h2>작성자 정보</h2>
           <div className="verification-intro">
-            <p>허위 리뷰나 학원 관계자 작성 리뷰를 방지하기 위해 운영자 검수용 정보를 받고 있습니다.</p>
-            <p>검수용 정보는 사이트에 공개되지 않으며, 리뷰 확인이 필요한 경우에만 사용됩니다.</p>
+            <p>허위 리뷰나 학원 관계자 작성 리뷰를 방지하기 위해 작성자 정보를 받고 있습니다.</p>
+            <p>연락 가능한 수단만 사이트에 공개되지 않습니다. 작성자 상태, 합격 여부, 다닌 시기와 기간은 리뷰와 함께 공개될 수 있습니다.</p>
           </div>
           <div className="form-grid">
-            <label data-error-key="writerStatus">작성자 상태 <RequiredMark /><select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select><ErrorMessage formError={formError} targetKeys={["writerStatus"]} /></label>
-            <label data-error-key="contact">연락 가능한 수단 <RequiredMark />
+            <label data-error-key="writerStatus"><LabelText required>작성자 상태</LabelText><select value={form.writerStatus} onChange={(event) => updateField("writerStatus", event.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</select><ErrorMessage formErrors={formErrors} targetKeys={["writerStatus"]} /></label>
+            <label data-error-key="contact"><LabelText required>연락 가능한 수단</LabelText>
               <div className="contact-method-grid">
                 <select value={form.contactMethod} onChange={(event) => updateField("contactMethod", event.target.value)}>
                   <option>이메일</option>
@@ -399,7 +416,7 @@ export default function ReviewNewPage() {
                 </select>
                 <input type={form.contactMethod === "이메일" ? "email" : "tel"} value={form.contact} onChange={(event) => updateField("contact", event.target.value)} placeholder={form.contactMethod === "이메일" ? "예: hello@example.com" : "예: 010-0000-0000"} />
               </div>
-              <ErrorMessage formError={formError} targetKeys={["contact"]} />
+              <ErrorMessage formErrors={formErrors} targetKeys={["contact"]} />
             </label>
             <label>합격 여부<select value={form.admissionResult} onChange={(event) => updateField("admissionResult", event.target.value)}>{admissionResults.map((result) => <option key={result} value={result}>{result || "선택 안 함"}</option>)}</select></label>
             <label>다닌 시기<input value={form.attendedYear} onChange={(event) => updateField("attendedYear", event.target.value)} placeholder="선택 입력 예: 2025년" /></label>
@@ -422,7 +439,7 @@ export default function ReviewNewPage() {
               <span>허위 내용이 확인될 경우 리뷰가 비공개 처리될 수 있음을 확인했습니다.</span>
             </label>
           </div>
-          <ErrorMessage formError={formError} targetKeys={["notStaff", "directExperience", "falseReviewNotice"]} />
+          <ErrorMessage formErrors={formErrors} targetKeys={["notStaff", "directExperience", "falseReviewNotice"]} />
         </section>
         <button type="submit" className="submit-button">리뷰 등록하기</button>
       </form>
@@ -434,12 +451,32 @@ function RequiredMark() {
   return <span className="required-mark">*</span>;
 }
 
-function ErrorMessage({ formError, targetKeys }: { formError: { key: string; message: string } | null; targetKeys: string[] }) {
-  if (!formError || !targetKeys.includes(formError.key)) return null;
-  return <p className="form-error">{formError.message}</p>;
+function LabelText({ children, required = false }: { children: string; required?: boolean }) {
+  return <span className="label-text">{children}{required && <RequiredMark />}</span>;
 }
 
-function getMissingRequiredMessage(values: {
+function ErrorSummary({ errors, onSelect }: { errors: { key: string; message: string }[]; onSelect: (key: string) => void }) {
+  return (
+    <div className="form-error-summary" role="alert">
+      <strong>입력하지 않은 항목이 있어요.</strong>
+      <div>
+        {errors.map((error) => (
+          <button type="button" key={`${error.key}-${error.message}`} onClick={() => onSelect(error.key)}>
+            {error.message}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ErrorMessage({ formErrors, targetKeys }: { formErrors: { key: string; message: string }[]; targetKeys: string[] }) {
+  const error = formErrors.find((item) => targetKeys.includes(item.key));
+  if (!error) return null;
+  return <p className="form-error">{error.message}</p>;
+}
+
+function getMissingRequiredMessages(values: {
   academyName: string;
   preparedTypes: string[];
   strongTypes: string[];
@@ -453,19 +490,20 @@ function getMissingRequiredMessage(values: {
   detail: string;
   verificationChecks: { notStaff: boolean; directExperience: boolean; falseReviewNotice: boolean };
 }) {
-  if (!values.academyName) return { key: "academy", message: "학원 선택 항목 입력이 안 됐어요." };
-  if (values.rating === 0) return { key: "rating", message: "만족도 항목 입력이 안 됐어요." };
-  if (values.preparedTypes.length === 0) return { key: "preparedTypes", message: "준비 가능 전형 항목 입력이 안 됐어요." };
-  if (values.strongTypes.length === 0) return { key: "strongTypes", message: "강점 전형 항목 입력이 안 됐어요." };
-  if (values.feedbackTags.length === 0) return { key: "feedbackTags", message: "피드백 스타일 항목 입력이 안 됐어요." };
-  if (values.goodTags.length === 0) return { key: "goodTags", message: "좋았던 점 항목 입력이 안 됐어요." };
-  if (values.concernTags.length === 0) return { key: "concernTags", message: "아쉬웠던 점 항목 입력이 안 됐어요." };
-  if (!values.summary.trim()) return { key: "summary", message: "한 줄 후기 항목 입력이 안 됐어요." };
-  if (!values.detail.trim()) return { key: "detail", message: "자세한 후기 항목 입력이 안 됐어요." };
-  if (!values.writerStatus) return { key: "writerStatus", message: "작성자 상태 항목 입력이 안 됐어요." };
-  if (!values.contact.trim()) return { key: "contact", message: "연락 가능한 수단 항목 입력이 안 됐어요." };
-  if (!values.verificationChecks.notStaff) return { key: "notStaff", message: "학원 관계자 아님 확인 항목 입력이 안 됐어요." };
-  if (!values.verificationChecks.directExperience) return { key: "directExperience", message: "직접 경험 확인 항목 입력이 안 됐어요." };
-  if (!values.verificationChecks.falseReviewNotice) return { key: "falseReviewNotice", message: "허위 내용 비공개 처리 확인 항목 입력이 안 됐어요." };
-  return null;
+  const errors: { key: string; message: string }[] = [];
+  if (!values.academyName) errors.push({ key: "academy", message: "학원 선택 항목 입력이 안 됐어요." });
+  if (values.rating === 0) errors.push({ key: "rating", message: "만족도 항목 입력이 안 됐어요." });
+  if (values.preparedTypes.length === 0) errors.push({ key: "preparedTypes", message: "준비 가능 전형 항목 입력이 안 됐어요." });
+  if (values.strongTypes.length === 0) errors.push({ key: "strongTypes", message: "강점 전형 항목 입력이 안 됐어요." });
+  if (values.feedbackTags.length === 0) errors.push({ key: "feedbackTags", message: "피드백 스타일 항목 입력이 안 됐어요." });
+  if (values.goodTags.length === 0) errors.push({ key: "goodTags", message: "좋았던 점 항목 입력이 안 됐어요." });
+  if (values.concernTags.length === 0) errors.push({ key: "concernTags", message: "아쉬웠던 점 항목 입력이 안 됐어요." });
+  if (!values.summary.trim()) errors.push({ key: "summary", message: "한 줄 후기 항목 입력이 안 됐어요." });
+  if (!values.detail.trim()) errors.push({ key: "detail", message: "자세한 후기 항목 입력이 안 됐어요." });
+  if (!values.writerStatus) errors.push({ key: "writerStatus", message: "작성자 상태 항목 입력이 안 됐어요." });
+  if (!values.contact.trim()) errors.push({ key: "contact", message: "연락 가능한 수단 항목 입력이 안 됐어요." });
+  if (!values.verificationChecks.notStaff) errors.push({ key: "notStaff", message: "학원 관계자 아님 확인 항목 입력이 안 됐어요." });
+  if (!values.verificationChecks.directExperience) errors.push({ key: "directExperience", message: "직접 경험 확인 항목 입력이 안 됐어요." });
+  if (!values.verificationChecks.falseReviewNotice) errors.push({ key: "falseReviewNotice", message: "허위 내용 비공개 처리 확인 항목 입력이 안 됐어요." });
+  return errors;
 }

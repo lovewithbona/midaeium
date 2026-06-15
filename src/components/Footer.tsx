@@ -32,21 +32,25 @@ const footerGroups = [
 export default function Footer() {
   return (
     <footer className="site-footer">
-      <div className="footer-brand">
-        <strong>미대이음</strong>
-        <p>미대 입시 정보의 차이를 줄입니다.</p>
-        <p>학원 정보와 실제 학생 리뷰를 바탕으로 미대 입시생의 학원 선택을 돕습니다.</p>
-        <small>미대이음은 미디어디자인2 수업 프로젝트로 시작된 미대 입시 정보 플랫폼입니다. 이후 장기 프로젝트로 확장될 수 있습니다.</small>
+      <div className="footer-top">
+        <div className="footer-brand">
+          <strong>미대이음</strong>
+          <p>한국의 모든 미대 입시생들을 위해서.</p>
+          <p>학원 정보와 실제 학생 리뷰를 바탕으로 미대 입시생의 학원 선택을 돕습니다.</p>
+        </div>
+        <div className="footer-links">
+          {footerGroups.map((group) => (
+            <nav className="footer-group" key={group.title} aria-label={group.title}>
+              <strong>{group.title}</strong>
+              {group.links.map(([label, to]) => <Link key={label} to={to}>{label}</Link>)}
+            </nav>
+          ))}
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <span>미대이음은 미디어디자인2 수업 프로젝트로 시작된 미대 입시 정보 플랫폼입니다. 이후 장기 프로젝트로 확장될 수 있습니다.</span>
         <a href="mailto:midaeium.contact@gmail.com">문의: midaeium.contact@gmail.com</a>
         <span>© 2026 Midaeium. Designed and operated by DANG. All rights reserved.</span>
-      </div>
-      <div className="footer-links">
-        {footerGroups.map((group) => (
-          <nav className="footer-group" key={group.title} aria-label={group.title}>
-            <strong>{group.title}</strong>
-            {group.links.map(([label, to]) => <Link key={label} to={to}>{label}</Link>)}
-          </nav>
-        ))}
       </div>
     </footer>
   );
