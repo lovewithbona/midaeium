@@ -15,7 +15,7 @@ const ADMIN_INBOX_STATUS_KEY = "midaeieum_admin_inbox_status";
 const REVIEW_RESET_VERSION_KEY = "midaeieum_review_reset_version";
 const REVIEW_RESET_VERSION = "2026-06-13-clear-all-reviews";
 const USER_KEY = "midaeieum_fake_user";
-export type ReviewReactionType = "empathy" | "helpful";
+export type ReviewReactionType = "helpful" | "downvote";
 
 export const DEMO_ADMIN_EMAIL = "admin@midaeium.kr";
 export const DEMO_ADMIN_PASSWORD = "midaeium2026";
@@ -113,9 +113,12 @@ export function hasReactedToReview(reviewId: string, type: ReviewReactionType) {
 
 export function getReviewReactionCount(review: Review, type: ReviewReactionType) {
   const reacted = hasReactedToReview(review.id, type) ? 1 : 0;
-  const baseCount = type === "empathy" ? review.empathy ?? review.likes ?? 0 : review.helpful ?? 0;
-  const legacyLikeCount = type === "empathy" ? getReviewLikesMap()[review.id] || 0 : 0;
-  return baseCount + legacyLikeCount + reacted;
+  if (type === "helpful") {
+    const legacyLikeCount = getReviewLikesMap()[review.id] || 0;
+    return (review.helpful ?? review.likes ?? 0) + legacyLikeCount + reacted;
+  }
+
+  return (review.downvote ?? 0) + reacted;
 }
 
 export function addReviewReaction(reviewId: string, type: ReviewReactionType) {

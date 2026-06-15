@@ -2765,6 +2765,7 @@ export type Review = {
   likes?: number;
   empathy?: number;
   helpful?: number;
+  downvote?: number;
   source?: "manual" | "demo" | "google-form";
   sourceRow?: number;
   academyNameRaw?: string;

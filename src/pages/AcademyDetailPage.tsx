@@ -40,6 +40,7 @@ export default function AcademyDetailPage() {
     : academy.schoolTags.map((tag) => tag.schoolName);
   const schoolInfoNote = getSchoolInfoNote(insights.schoolTagCounts.length > 0, academy.schoolTags.length > 0);
   const keywordGroups = getKeywordGroups(reviews);
+  const reviewAverages = getReviewAverages(reviews);
   const sortedReviews = [...reviews].sort((a, b) => {
     if (reviewSort === "helpful") return getReviewReactionCount(b, "helpful") - getReviewReactionCount(a, "helpful") || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     if (reviewSort === "recent") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -153,7 +154,11 @@ export default function AcademyDetailPage() {
           <div className="review-summary-panel">
             <p className="eyebrow">리뷰 요약</p>
             <h2>등록된 리뷰 {reviewCount}개</h2>
-            <p className="muted">리뷰에서 많이 선택된 태그를 먼저 확인해 보세요.</p>
+            <div className="review-average-grid" aria-label="리뷰 평균 요약">
+              <ReviewAverageCard title="분위기" summary={reviewAverages.atmosphere} />
+              <ReviewAverageCard title="과제량" summary={reviewAverages.homeworkLoad} />
+              <ReviewAverageCard title="난이도" summary={reviewAverages.classLevel} />
+            </div>
             <p className="type-note">리뷰는 학생 개인의 경험을 바탕으로 작성되며, 모든 학원에 동일하게 적용되는 평가가 아닐 수 있습니다.</p>
           </div>
           <div className="keyword-summary">
@@ -262,6 +267,67 @@ function getKeywordGroups(reviews: Review[]) {
     tone: group.tone,
     items: countLabels(group.labels).slice(0, 6).map((item) => ({ ...item, tone: group.tone })),
   })).filter((group) => group.items.length > 0);
+}
+
+type ReviewAverageSummary = {
+  label: string;
+  averageText: string;
+  count: number;
+};
+
+const atmosphereScale = ["매우 진지해요", "진지한 편이에요", "보통이에요", "자유로운 편이에요", "매우 자유로워요"];
+const homeworkLoadScale = ["없어요", "적은 편이에요", "적당해요", "많은 편이에요", "매우 많아요"];
+const classLevelScale = ["입문자도 가능해요", "기본기가 있으면 좋아요", "어느 정도 실력이 필요해요", "상급자에게 적합해요 (초보자 비추)"];
+
+function ReviewAverageCard({ title, summary }: { title: string; summary: ReviewAverageSummary }) {
+  return (
+    <div className="review-average-card">
+      <span>{title}</span>
+      <strong>{summary.label}</strong>
+      <small>{summary.count > 0 ? `${summary.averageText} · 리뷰 ${summary.count}개 기준` : "공개 리뷰가 쌓이면 표시됩니다."}</small>
+    </div>
+  );
+}
+
+function getReviewAverages(reviews: Review[]) {
+  return {
+    atmosphere: summarizeReviewScale(reviews.map((review) => review.atmosphere), atmosphereScale),
+    homeworkLoad: summarizeReviewScale(reviews.map((review) => review.homeworkLoad), homeworkLoadScale),
+    classLevel: summarizeReviewScale(reviews.map((review) => review.classLevel), classLevelScale),
+  };
+}
+
+function summarizeReviewScale(values: Array<string | undefined>, labels: string[]): ReviewAverageSummary {
+  const scores = values
+    .map((value) => getScaleScore(value, labels))
+    .filter((score): score is number => score !== null);
+
+  if (scores.length === 0) {
+    return {
+      label: "아직 데이터 없음",
+      averageText: "",
+      count: 0,
+    };
+  }
+
+  const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const labelIndex = Math.min(labels.length - 1, Math.max(0, Math.round(average) - 1));
+
+  return {
+    label: labels[labelIndex],
+    averageText: `평균 ${average.toFixed(1)} / ${labels.length}`,
+    count: scores.length,
+  };
+}
+
+function getScaleScore(value: string | undefined, labels: string[]) {
+  if (!value) return null;
+
+  const numericValue = Number(value);
+  if (Number.isFinite(numericValue) && numericValue >= 1 && numericValue <= labels.length) return numericValue;
+
+  const index = labels.findIndex((label) => label === value || label.replace(/\s+/g, "") === value.replace(/\s+/g, ""));
+  return index >= 0 ? index + 1 : null;
 }
 
 function countLabels(labels: string[]) {

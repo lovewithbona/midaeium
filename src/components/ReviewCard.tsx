@@ -20,13 +20,13 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
   const tagGroups = getReviewTagGroups(review);
   const metaText = getReviewMetaText(review);
   const [reactionState, setReactionState] = useState(() => ({
-    empathy: {
-      active: hasReactedToReview(review.id, "empathy"),
-      count: getReviewReactionCount(review, "empathy"),
-    },
     helpful: {
       active: hasReactedToReview(review.id, "helpful"),
       count: getReviewReactionCount(review, "helpful"),
+    },
+    downvote: {
+      active: hasReactedToReview(review.id, "downvote"),
+      count: getReviewReactionCount(review, "downvote"),
     },
   }));
   const [isExpanded, setIsExpanded] = useState(false);
@@ -99,22 +99,22 @@ export default function ReviewCard({ review, onLike }: { review: Review; onLike?
       </div>
       <div className="review-reaction-row" aria-label="리뷰 반응">
         <button
-          className={`review-reaction-button ${reactionState.empathy.active ? "active" : ""}`}
-          type="button"
-          onClick={() => handleReaction("empathy")}
-          disabled={reactionState.empathy.active}
-          aria-pressed={reactionState.empathy.active}
-        >
-          공감해요 {reactionState.empathy.count}
-        </button>
-        <button
           className={`review-reaction-button ${reactionState.helpful.active ? "active" : ""}`}
           type="button"
           onClick={() => handleReaction("helpful")}
           disabled={reactionState.helpful.active}
           aria-pressed={reactionState.helpful.active}
         >
-          도움돼요 {reactionState.helpful.count}
+          따봉 {reactionState.helpful.count}
+        </button>
+        <button
+          className={`review-reaction-button ${reactionState.downvote.active ? "active" : ""}`}
+          type="button"
+          onClick={() => handleReaction("downvote")}
+          disabled={reactionState.downvote.active}
+          aria-pressed={reactionState.downvote.active}
+        >
+          따봉 아래로 {reactionState.downvote.count}
         </button>
         <button className="review-report-button" type="button" onClick={() => setIsReportOpen(true)}>신고</button>
       </div>
