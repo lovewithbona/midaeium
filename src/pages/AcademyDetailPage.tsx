@@ -101,19 +101,19 @@ export default function AcademyDetailPage() {
           <h2>학원 정보</h2>
           <div className="detail-summary-grid">
             <div>
-              <span><i className="info-icon address" aria-hidden="true" />지역 및 주소</span>
+              <span><InfoIcon name="address" />지역 및 주소</span>
               <strong>{academy.region} {academy.district} · {academy.address}</strong>
             </div>
             <div>
-              <span><i className="info-icon check" aria-hidden="true" />준비 가능 전형</span>
+              <span><InfoIcon name="check" />준비 가능 전형</span>
               <strong>{preparedLabels.length > 0 ? preparedLabels.slice(0, 4).map((item) => item.label).join(", ") : "기본 등록 정보 업데이트 예정"}</strong>
             </div>
             <div>
-              <span><i className="info-icon fire" aria-hidden="true" />강점 입시 유형</span>
+              <span><InfoIcon name="fire" />강점 입시 유형</span>
               <strong>{strongLabels.length > 0 ? strongLabels.slice(0, 4).map((item) => item.label).join(", ") : "기본 등록 정보 업데이트 예정"}</strong>
             </div>
             <div>
-              <span><i className="info-icon school" aria-hidden="true" />주요 대비 대학</span>
+              <span><InfoIcon name="school" />주요 대비 대학</span>
               <strong>{schoolLabels.length > 0 ? schoolLabels.slice(0, 4).join(", ") : "리뷰와 추가 조사를 통해 업데이트 예정입니다."}</strong>
             </div>
           </div>
@@ -211,6 +211,38 @@ function getInstagramLabel(url: string | null) {
   } catch {
     return "인스타그램";
   }
+}
+
+function InfoIcon({ name }: { name: "address" | "check" | "fire" | "school" }) {
+  const paths = {
+    address: (
+      <>
+        <path d="M12 21s7-4.7 7-11a7 7 0 0 0-14 0c0 6.3 7 11 7 11Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </>
+    ),
+    check: <path d="m5 12 4 4 10-10" />,
+    fire: (
+      <>
+        <path d="M12 22c4 0 7-2.7 7-6.8 0-2.7-1.5-5.1-4.2-7.2.1 2-1 3.1-2.1 3.8.4-3-1-5.5-3.8-7.8.2 3.8-3.9 6.3-3.9 11.1C5 19.2 8 22 12 22Z" />
+        <path d="M12 18c1.5 0 2.5-1 2.5-2.4 0-1.1-.6-2-1.7-2.9 0 1-.6 1.6-1.4 2.1-.1-1.3-.7-2.3-1.8-3.2.1 2-1.6 3-1.6 4.7C8 17.4 9.7 18 12 18Z" />
+      </>
+    ),
+    school: (
+      <>
+        <path d="M3 10.5 12 5l9 5.5" />
+        <path d="M5 10v9h14v-9" />
+        <path d="M9 19v-5h6v5" />
+        <path d="M8 12h1M15 12h1" />
+      </>
+    ),
+  };
+
+  return (
+    <svg className="info-icon" viewBox="0 0 24 24" aria-hidden="true">
+      {paths[name]}
+    </svg>
+  );
 }
 
 function getSchoolInfoNote(hasReviewSchoolTags: boolean, hasInitialSchoolTags: boolean) {
