@@ -1,22 +1,12 @@
 import { Link } from "react-router-dom";
 import { type Academy } from "../data/academies";
-import { findUniversityByName } from "../data/universities";
 import { getAcademyDisplayLocation, getAcademyDisplayName } from "../utils/academyDisplay";
-import { createHashtag, getAcademyAggregatedInsights, getAcademyReviewStats, getReviewDisplayDetail } from "../utils/reviewStats";
-
-type CardTag = {
-  label: string;
-  tone: "school" | "feedback" | "good" | "concern" | "caution";
-};
+import { getAcademyCardTags, getAcademyReviewStats, getReviewDisplayDetail, type CardTag } from "../utils/reviewStats";
 
 export default function AcademyCard({ academy }: { academy: Academy }) {
   const { averageRating, reviewCount, reviews } = getAcademyReviewStats(academy.id);
-  const insights = getAcademyAggregatedInsights(academy.id);
   const previewReview = reviews[0];
-  const schoolLabels = insights.schoolTagCounts.length > 0
-    ? insights.schoolTagCounts.slice(0, 3).map((item) => item.label)
-    : academy.schoolTags.slice(0, 3).map((item) => item.schoolName);
-  const schoolTags: CardTag[] = uniqueTags(schoolLabels.map(getShortSchoolLabel)).map((label) => ({ label, tone: "school" }));
+  const cardTags = getAcademyCardTags(academy.id, academy.schoolTags.map((item) => item.schoolName));
   const detailUrl = `/academies/${academy.id}`;
   const displayName = getAcademyDisplayName(academy);
   const displayLocation = getAcademyDisplayLocation(academy);
@@ -35,14 +25,20 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
           <p className="academy-location-rating">{displayLocation} · {ratingText}</p>
         </div>
       </div>
-      <div className="academy-hashtags" aria-label="학원 특징">
-        {schoolTags.map((tag) => (
-          <span className={`tag tag--${tag.tone}`} key={tag.label}>{tag.label}</span>
+      <div className="academy-card__tags" aria-label="학원 특징">
+        {cardTags.map((tag) => (
+          <span
+            className={`academy-card-tag academy-card-tag--${tag.tone}`}
+            key={`${tag.tone}-${tag.label}`}
+            aria-label={getTagAriaLabel(tag)}
+            title={getTagAriaLabel(tag)}
+          >
+            {tag.displayLabel}
+          </span>
         ))}
-        {schoolTags.length === 0 && <span className="academy-hashtag-placeholder">주요 대비 대학 업데이트 예정</span>}
       </div>
-      <div className="academy-review-preview">
-        <p>{previewText || "아직 등록된 리뷰가 없습니다. 첫 리뷰를 남겨 주세요."}</p>
+      <div className="academy-card__review-preview">
+        <p className="academy-card__review-preview-text">{previewText || "아직 등록된 리뷰가 없습니다. 첫 리뷰를 남겨 주세요."}</p>
       </div>
       {academy.typeConfidence === "이름 기반 1차 분류" && <p className="type-note">1차 분류</p>}
       <div className="card-footer">
@@ -52,10 +48,16 @@ export default function AcademyCard({ academy }: { academy: Academy }) {
   );
 }
 
-function uniqueTags(labels: string[]) {
-  return Array.from(new Set(labels.map(createHashtag).filter(Boolean))).slice(0, 3);
-}
+function getTagAriaLabel(tag: CardTag) {
+  const label = tag.displayLabel.replace(/^#/u, "");
+  const toneLabels: Record<CardTag["tone"], string> = {
+    school: "주요 대비 대학",
+    feedback: "피드백 스타일",
+    good: "좋았던 점",
+    concern: "확인할 점",
+    caution: "주의할 점",
+    neutral: "기타",
+  };
 
-function getShortSchoolLabel(label: string) {
-  return findUniversityByName(label)?.shortName || label;
+  return `${toneLabels[tag.tone]} ${label}`;
 }

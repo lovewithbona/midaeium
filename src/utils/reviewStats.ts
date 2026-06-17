@@ -1,5 +1,6 @@
 import type { Review } from "../data/academies";
 import { demoReviews } from "../data/reviews";
+import { findUniversityByName } from "../data/universities";
 import { getImportedReviewsAsReviews } from "./importedReviewAdapter";
 import { getModerationStatusOverride, getReviewReactionCount, getStoredReviews } from "./storage";
 
@@ -9,7 +10,15 @@ type ReviewQueryOptions = {
 
 export type KeywordTone = "positive" | "negative" | "neutral";
 type KeywordSource = "feedbackTags" | "goodTags" | "concernTags" | "cautionTags" | "teachingStyleTags";
-const excludedKeywordLabels = new Set(["특별히 없음", "해당 없음", "잘 모르겠음", "선택 안 함"]);
+export type CardTagTone = "school" | "feedback" | "good" | "concern" | "caution" | "neutral";
+export type CardTag = {
+  label: string;
+  displayLabel: string;
+  tone: CardTagTone;
+  count?: number;
+};
+
+const excludedKeywordLabels = new Set(["특별히 없음", "해당 없음", "잘 모르겠음", "선택 안 함", "없음"]);
 
 export function getAllReviews(options: ReviewQueryOptions = {}): Review[] {
   const reviews = [...getStoredReviews(), ...getImportedReviewsAsReviews(), ...demoReviews].map((review) => ({
@@ -47,6 +56,21 @@ export function getAcademyAggregatedInsights(academyId: string) {
     schoolTagCounts: countLabels(reviews.flatMap((review) => review.reviewSchoolTags || [])),
     topKeywordCounts: countKeywordItems(reviews.flatMap(getReviewKeywordItems)),
   };
+}
+
+export function getAcademyCardTags(academyId: string, fallbackSchoolTags: string[] = []): CardTag[] {
+  const reviews = getAllReviews().filter((review) => review.academyId === academyId);
+  const schoolTags = countLabels([
+    ...reviews.flatMap((review) => review.reviewSchoolTags || []),
+    ...fallbackSchoolTags,
+  ])
+    .slice(0, 2)
+    .map(({ label, count }) => createCardTag(label, "school", count));
+
+  const keywordTags = countCardKeywordItems(reviews.flatMap(getReviewKeywordItems));
+  const keywordLimit = schoolTags.length > 0 ? 3 : 5;
+
+  return [...schoolTags, ...keywordTags.slice(0, keywordLimit)].slice(0, 5);
 }
 
 export function getReviewKeywordLabels(review: Review) {
@@ -135,4 +159,40 @@ function countKeywordItems(items: { label: string; tone: KeywordTone }[]) {
   });
 
   return [...counts.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "ko"));
+}
+
+function countCardKeywordItems(items: ReturnType<typeof getReviewKeywordItems>) {
+  const counts = new Map<string, CardTag>();
+
+  items.forEach((item) => {
+    const tone = getCardKeywordTone(item.label, item.source);
+    const key = `${tone}:${item.label}`;
+    const current = counts.get(key);
+    if (current) current.count = (current.count || 0) + 1;
+    else counts.set(key, createCardTag(item.label, tone, 1));
+  });
+
+  return [...counts.values()].sort((a, b) => (b.count || 0) - (a.count || 0) || a.label.localeCompare(b.label, "ko"));
+}
+
+function getCardKeywordTone(label: string, source: KeywordSource): CardTagTone {
+  if (source === "feedbackTags") return "feedback";
+  if (source === "goodTags") return "good";
+  if (source === "concernTags") return "concern";
+  if (source === "cautionTags") return "caution";
+
+  const tone = getKeywordTone(label, source);
+  if (tone === "positive") return "feedback";
+  if (tone === "negative") return "concern";
+  return "neutral";
+}
+
+function createCardTag(label: string, tone: CardTagTone, count?: number): CardTag {
+  const displayText = tone === "school" ? findUniversityByName(label)?.shortName || label : label;
+  return {
+    label,
+    displayLabel: createHashtag(displayText),
+    tone,
+    count,
+  };
 }

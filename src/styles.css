@@ -978,45 +978,92 @@ p {
   color: #4b2118;
 }
 
-.academy-hashtags {
+.tag--neutral {
+  border: 1px solid #d7d7d7;
+  background: #f3f3f3;
+  color: #555;
+}
+
+.academy-card__tags {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 8px;
-  min-height: 42px;
+  min-height: 72px;
+  max-height: 72px;
+  overflow: hidden;
 }
 
-.academy-hashtag-placeholder {
-  color: var(--muted);
+.academy-card-tag {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 7px;
   font-size: 13px;
-  line-height: 1.7;
+  font-weight: 520;
+  line-height: 1.35;
 }
 
-.academy-review-preview {
-  display: grid;
-  gap: 6px;
-  min-height: 116px;
-  max-height: 116px;
-  padding: 16px;
+.academy-card-tag--school {
+  border: 1px solid #a7c7f7;
+  background: #eef6ff;
+  color: #1d5fa8;
+}
+
+.academy-card-tag--feedback {
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  background: #f4f2ff;
+  color: #5b4fd6;
+}
+
+.academy-card-tag--good {
+  border: 1px solid #9ccfb4;
+  background: #dbf3e4;
+  color: #123324;
+}
+
+.academy-card-tag--concern {
+  border: 1px solid #eadf74;
+  background: #fbf4a5;
+  color: var(--text);
+}
+
+.academy-card-tag--caution {
+  border: 1px solid #e6b3a6;
+  background: #ffe8df;
+  color: #4b2118;
+}
+
+.academy-card-tag--neutral {
+  border: 1px solid #d7d7d7;
+  background: #f3f3f3;
+  color: #555;
+}
+
+.academy-card__review-preview {
+  min-height: calc(15px * 1.65 * 3 + 40px);
+  max-height: calc(15px * 1.65 * 3 + 40px);
+  padding: 20px 22px;
   border: 1px solid var(--line);
   background: #fafafa;
   overflow: hidden;
 }
 
-.academy-review-preview span {
+.academy-card__review-preview span {
   color: var(--muted);
   font-size: 13px;
 }
 
-.academy-review-preview p {
+.academy-card__review-preview-text {
   display: -webkit-box;
   overflow: hidden;
   margin: 0;
   color: var(--text);
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.65;
+  text-overflow: ellipsis;
+  word-break: keep-all;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
 }
 
 .academy-school-line {
